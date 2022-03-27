@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import routes from './routes/index';
+import cors from 'cors';
 
 const app = express();
 
@@ -14,6 +15,7 @@ process.on('SIGINT', function() {
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(bodyParser.json());
+app.use(cors());
 
 app.use('/api/v1/', routes);
 

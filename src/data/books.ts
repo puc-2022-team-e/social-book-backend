@@ -12,10 +12,11 @@ const books = [
 		categories:[
 			"romance"
 		],
+		averageRating:3,
 		imageLinks: {
 			thumbnail:"",
-			mainImage:"",
-		}
+			mainImage:"https://images-na.ssl-images-amazon.com/images/I/613Ywe4F3vL.jpg",
+		},
 	},
 	{
 		title:  "Hora da Estrela",
@@ -30,9 +31,10 @@ const books = [
 		categories:[
 			"romance"
 		],
+		averageRating:5,
 		imageLinks: {
 			thumbnail:"",
-			mainImage:"",
+			mainImage:"https://images-na.ssl-images-amazon.com/images/I/810Vj9zyi-L.jpg",
 		}
 	},
 	{
@@ -48,9 +50,10 @@ const books = [
 		categories:[
 			"romance"
 		],
+		averageRating:4,
 		imageLinks: {
 			thumbnail:"",
-			mainImage:"",
+			mainImage:"https://images-na.ssl-images-amazon.com/images/I/71fcsbZKaGL.jpg",
 		}
 	},
 ];
