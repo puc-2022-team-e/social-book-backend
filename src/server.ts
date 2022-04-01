@@ -5,7 +5,7 @@ import cors from 'cors';
 
 const app = express();
 
-const port = process.env.NODE_SERVER_PORT || 8077;
+const port = process.env.PORT || 8077;
 
 //kill container when Ctrl + C 
 process.on('SIGINT', function() {
