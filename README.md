@@ -1,42 +1,14 @@
-# social-book-backend
-Backend MVP for the social book project;
+#build project 
 
-This project is part of the post graduation in software engineering;
+1- Subir o banco de dados e o pdAdmin 
+   1.1 - Abrir o terminal 
+   1.2 - Entrar via terminal na pasta devops/database/postgres
+   1.3 - Executar o comando docker-compose up -d
 
-## Running locally
-After cloning this repository: 
-
-```
-# this command will install globally the typescript
-# this command must be executed with superuser permissions 
-~$ npm i -g typescript
-
-```
-
-And then start to setup
-```
-# this command will download all node_modules
-~$ npm i 
-
-```
-
-## Running the server
-```
-#this command will transpile TypeScript to JavaScript in a folder named 'dist'
-~$ npm run build
-~$ npm run start
-```
-
-## build & run locally with docker
-
-```
-#build
-~$ docker build . -f $PWD/devops/ci/Dockerfile -t social-books
-
-```
-and then...
-
-```
-#run
-~$ docker run --rm -ti -p 8077:8077 social-books
-```
+2- Para acessar o pgadmin 
+   2.1 - http://localhost:16543/browser/
+   2.2 - Abrir a instancia da base de dados 
+         server: database-postgres
+         user: admin
+         password:puc@2022
+         database:socialbook-db

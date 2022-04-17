@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  database-postgres:
+    image: 'postgres:latest'
+    container_name: socialbook-db
+    restart: always
+    hostname: localhost
+    ports:
+      - "15432:5432"
+    env_file:
+      - ../.env
+    volumes:
+      - ./db-data/:/var/lib/postgresql/data/
+    networks:
+      - database-postgres-network
+
+  pgadmin:
+    image: 'dpage/pgadmin4'
+    container_name: pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "puc@puc.com.br"
+      PGADMIN_DEFAULT_PASSWORD: "puc@2022"
+    ports:
+      - "16543:80"
+    depends_on:
+      - database-postgres
+    networks:
+      - database-postgres-network
+networks: 
+  database-postgres-network:
+    driver: bridge
