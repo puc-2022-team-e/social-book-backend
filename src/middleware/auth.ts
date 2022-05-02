@@ -5,28 +5,42 @@ const client = new OAuth2Client(CLIENT_ID);
 import { Response, Request } from 'express';
 
 const auth = async (req: Request, res: Response, next: any) => {
+	var STATUS_CODE = 403;
+	var message = 'forbidden';
+
 	if (req.headers.authorization) {
-		const ticket = await client.verifyIdToken({
-			idToken: req.headers.authorization,
-			audience: CLIENT_ID,
-		});
-		const payload = ticket.getPayload();
-		const userid = payload['sub'];
-		if (!userid) {
-			next(
-				res.json(403).json({
-					error: `forbidden`,
-				})
-			);
+		try {
+			const ticket = await client.verifyIdToken({
+				idToken: req.headers.authorization,
+				audience: CLIENT_ID,
+			});
+
+			const payload = ticket.getPayload();
+			const userId = payload['sub'];
+
+			if (userId) {
+				STATUS_CODE = 200;
+			}
+		} catch (e: any) {
+			console.error(e);
+			if (e && typeof e === 'object' && e.hasOwnProperty('message')) {
+				message = e.message;
+			}
 		}
 	} else {
-		next(
-			res.status(500).json({
-				error: 'Invalid Auth',
-			})
-		);
+		STATUS_CODE = 500;
+		message = 'Missing Authorization header';
 	}
-	next();
+
+	if (STATUS_CODE === 200) {
+		next();
+	} else {
+		const responseBody = {
+			error: message,
+		};
+
+		next(res.status(STATUS_CODE).json(responseBody));
+	}
 };
 
 export default auth;

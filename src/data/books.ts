@@ -1,5 +1,6 @@
 const books = [
 	{
+		_id:"domcas153",
 		title:  "Dom Casmurro",
 		subtile: "Dom Casmurro",
 		authors:[
@@ -19,6 +20,7 @@ const books = [
 		},
 	},
 	{
+		_id:"horaestrela541",
 		title:  "Hora da Estrela",
 		subtile: "Hora da Estrela",
 		authors:[
@@ -38,6 +40,7 @@ const books = [
 		}
 	},
 	{
+		_id:"morroventos918",
 		title:  "O Morro dos Ventos Uivantes",
 		subtile: "O Morro dos Ventos Uivantes",
 		authors:[
