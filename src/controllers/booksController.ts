@@ -1,4 +1,3 @@
-import books from '../data/books';
 import { Response, Request } from 'express';
 import { ObjectId } from 'mongodb';
 import { collections, connectToDatabase } from '../services/database.services';
@@ -28,7 +27,6 @@ class BooksController {
 		await connectToDatabase();
 		try {
 			const book = await collections.books?.find().toArray();
-			console.log(book);
 			if (book) {
 				res.status(200).send(book);
 			}
