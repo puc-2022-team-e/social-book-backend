@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import routes from './routes/index';
 import cors from 'cors';
 
+const version = require('../package').version
 const app = express();
 
 const port = process.env.PORT || 8077;
@@ -20,6 +21,9 @@ app.use(cors());
 app.use('/api/v1/', routes);
 
 app.listen(port, () => {
+	console.log(`Starting social books server 
+	version: ${version}
+	in mode ${process.env.NODE_ENV}`)
     console.log(`Server started on port ${port}`);
 });
 
