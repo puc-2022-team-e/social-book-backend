@@ -7,7 +7,7 @@ export const collections: { books?: mongoDB.Collection,
 export async function connectToDatabase() {
 	
 	const client: mongoDB.MongoClient = new mongoDB.MongoClient(
-		'mongodb+srv://teame:LDQy8j4gpt8c5dQ@puces22teame.7ss80.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
+		process.env.MONGODB_URI || ''
 	);
 
 	await client.connect();
