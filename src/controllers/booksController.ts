@@ -31,7 +31,7 @@ class BooksController {
 		await connectToDatabase(COLLECTION_NAME);
 		try {
 			const book = await collections.books?.find().toArray();
-			console.log(book);
+
 			if (book) {
 				res.status(200).send(book);
 			} else {
@@ -44,10 +44,9 @@ class BooksController {
 
 	static async postBook(req: Request, res: Response) {
 		const book = req.body;
-		console.log(`posting book: 
-			${book}
-		`);
+
 		if (book) {
+			console.log(`New book: ${book}`);
 			try {
 				await connectToDatabase(COLLECTION_NAME);
 				console.log('adding book');
@@ -59,6 +58,44 @@ class BooksController {
 			} catch (error) {
 				res.status(500).send(ERROR_MSG);
 			}
+		}
+	}
+
+	static async updateBook(req: Request, res: Response) {
+		const values = req?.body;
+
+		const id = req?.params?.id;
+
+		if (id && values) {
+			console.log(`Updating book ${id}`);
+			try {
+				const query = { short: id };
+				const newValues = { $set: values };
+
+				await connectToDatabase(COLLECTION_NAME);
+				const ret = await collections.books?.updateOne(query, newValues);
+
+				if (ret?.modifiedCount && ret?.modifiedCount > 0) {
+					res.status(200).send({
+						status: 200,
+						message: `Document ${id} successfully updated`,
+					});
+				} else {
+					throw new Error(`Error while trying to update book ${id}`);
+				}
+			} catch (error) {
+				console.error(error);
+				res.status(500).send({
+					status: 500,
+					message: ERROR_MSG,
+					error: error,
+				});
+			}
+		} else {
+			res.status(500).send({
+				status: 500,
+				message: ERROR_MSG + ` Missing Body or ID`,
+			});
 		}
 	}
 
