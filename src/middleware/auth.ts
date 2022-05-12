@@ -8,6 +8,11 @@ const auth = async (req: Request, res: Response, next: any) => {
 	var STATUS_CODE = 403;
 	var message = 'forbidden';
 
+	//if running localhost or while testing, dont ask for gmail token;
+	if (process.env.NODE_ENV === "development") {
+		next();
+	}
+
 	if (req.headers.authorization) {
 		try {
 			const ticket = await client.verifyIdToken({
