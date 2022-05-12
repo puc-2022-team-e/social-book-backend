@@ -105,6 +105,7 @@ class BooksController {
 		console.log(`deleting book: ${id}!`);
 		if (id) {
 			try {
+				await connectToDatabase(COLLECTION_NAME);
 				const query = { short: id };
 				const ret = await collections.books?.deleteOne(query);
 				if (ret?.deletedCount === 1) {
