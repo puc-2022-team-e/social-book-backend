@@ -2,6 +2,7 @@ import { Response, Request } from 'express';
 import { ObjectId } from 'mongodb';
 import { collections, connectToDatabase } from '../services/database.services';
 
+
 class DiscussionsController {
 
 	static async getDiscussionById(req: Request, res: Response) {
@@ -64,6 +65,12 @@ class DiscussionsController {
 			const discussion = await collections.discussons?.insertOne(req.body);
 			if (discussion) {
 				res.status(200).send(discussion);
+			} else {
+				res
+					.status(500)
+					.send(
+						`unable to add discussion document: ${req.body} `
+					);
 			}
 		} catch (error) {
 			res

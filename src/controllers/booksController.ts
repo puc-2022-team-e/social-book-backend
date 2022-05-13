@@ -1,13 +1,12 @@
 import { Response, Request } from 'express';
 import { collections, connectToDatabase } from '../services/database.services';
 
-const COLLECTION_NAME = 'books';
 const ERROR_MSG = 'internal server Error';
 class BooksController {
 	static async getBookById(req: Request, res: Response) {
 		const id = req?.params?.id;
 
-		await connectToDatabase(COLLECTION_NAME);
+		await connectToDatabase();
 		console.log('getting by ID');
 		try {
 			console.log(`Getting book ID: ${id}`);
@@ -28,7 +27,7 @@ class BooksController {
 	}
 
 	static async getAllBooks(req: Request, res: Response) {
-		await connectToDatabase(COLLECTION_NAME);
+		await connectToDatabase();
 		try {
 			const book = await collections.books?.find().toArray();
 			if (book) {
@@ -47,7 +46,7 @@ class BooksController {
 		if (book) {
 			console.log(`New book: ${book}`);
 			try {
-				await connectToDatabase(COLLECTION_NAME);
+				await connectToDatabase();
 				console.log('adding book');
 				const ret = await collections.books?.insertOne(book);
 				res.status(201).send({
@@ -71,7 +70,7 @@ class BooksController {
 				const query = { short: id };
 				const newValues = { $set: values };
 
-				await connectToDatabase(COLLECTION_NAME);
+				await connectToDatabase();
 				const ret = await collections.books?.updateOne(query, newValues);
 
 				if (ret?.modifiedCount && ret?.modifiedCount > 0) {
@@ -104,7 +103,7 @@ class BooksController {
 		console.log(`deleting book: ${id}!`);
 		if (id) {
 			try {
-				await connectToDatabase(COLLECTION_NAME);
+				await connectToDatabase();
 				const query = { short: id };
 				const ret = await collections.books?.deleteOne(query);
 				if (ret?.deletedCount === 1) {
