@@ -31,7 +31,6 @@ class BooksController {
 		await connectToDatabase(COLLECTION_NAME);
 		try {
 			const book = await collections.books?.find().toArray();
-
 			if (book) {
 				res.status(200).send(book);
 			} else {
