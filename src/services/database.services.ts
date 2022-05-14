@@ -13,8 +13,7 @@ export async function connectToDatabase() {
 
 	// console.log(process.env.MONGODB_URI)
 	const client: mongoDB.MongoClient = new mongoDB.MongoClient(
-		"mongodb+srv://teame:LDQy8j4gpt8c5dQ@puces22teame.7ss80.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-	);
+			process.env.MONGODB_URI || '');
 	await client.connect();
 
 	const db: mongoDB.Db = client.db(process.env.DB_NAME || "socialbooks");
