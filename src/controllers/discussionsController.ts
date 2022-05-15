@@ -1,17 +1,16 @@
 import { Response, Request } from 'express';
 import { ObjectId } from 'mongodb';
-import { collections, connectToDatabase } from '../services/database.services';
-
+import { collections, connectToDatabase, DataBaseServices } from '../services/database.services';
+const dataBase = new DataBaseServices(process.env.MONGODB_URI||"", "socialbooks")
 
 class DiscussionsController {
 
 	static async getDiscussionById(req: Request, res: Response) {
 		const id = req?.params?.id;
-		await connectToDatabase();
-
+		await dataBase.connect();
 		try {
-			const query = { _id: new ObjectId(id) };
-			const discussion = await collections.discussons?.findOne(query);
+			const discussion = await dataBase.findDiscussion(id);
+
 			if (discussion) {
 				res.status(200).send(discussion);
 			}
@@ -27,9 +26,9 @@ class DiscussionsController {
     static async getAllDiscussions(req: Request, res: Response) {
 		await connectToDatabase();
 		try {
-			const book = await collections.discussons?.find().toArray();
-			if (book) {
-				res.status(200).send(book);
+			const discussion = await dataBase.findDiscussion();
+			if (discussion) {
+				res.status(200).send(discussion);
 			}
 		} catch (error) {
 			res
@@ -46,7 +45,7 @@ class DiscussionsController {
 
 		try {
 			const query = { _id: new ObjectId(id) };
-			const discussion = await collections.discussons?.deleteOne(query);
+			const discussion = await collections.discussions?.deleteOne(query);
 			if (discussion) {
 				res.status(200).send(discussion);
 			}
@@ -62,7 +61,7 @@ class DiscussionsController {
 	static async insertDiscussion(req: Request, res: Response) {
 		await connectToDatabase();
 		try {
-			const discussion = await collections.discussons?.insertOne(req.body);
+			const discussion = await collections.discussions?.insertOne(req.body);
 			if (discussion) {
 				res.status(200).send(discussion);
 			} else {

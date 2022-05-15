@@ -9,42 +9,43 @@ const auth = async (req: Request, res: Response, next: any) => {
 	var message = 'forbidden';
 
 	//if running localhost or while testing, dont ask for gmail token;
-	if (process.env.NODE_ENV === "development") {
+	if (process.env.NODE_ENV !== 'production') {
+		console.log(`Development Mode`);
 		next();
-	}
+	} else {
+		if (req.headers.authorization) {
+			try {
+				const ticket = await client.verifyIdToken({
+					idToken: req.headers.authorization,
+					audience: CLIENT_ID,
+				});
 
-	if (req.headers.authorization) {
-		try {
-			const ticket = await client.verifyIdToken({
-				idToken: req.headers.authorization,
-				audience: CLIENT_ID,
-			});
+				const payload = ticket.getPayload();
+				const userId = payload['sub'];
 
-			const payload = ticket.getPayload();
-			const userId = payload['sub'];
-
-			if (userId) {
-				STATUS_CODE = 200;
+				if (userId) {
+					STATUS_CODE = 200;
+				}
+			} catch (e: any) {
+				console.error(e);
+				if (e && typeof e === 'object' && e.hasOwnProperty('message')) {
+					message = e.message;
+				}
 			}
-		} catch (e: any) {
-			console.error(e);
-			if (e && typeof e === 'object' && e.hasOwnProperty('message')) {
-				message = e.message;
-			}
+		} else {
+			STATUS_CODE = 500;
+			message = 'Missing Authorization header';
 		}
-	} else {
-		STATUS_CODE = 500;
-		message = 'Missing Authorization header';
-	}
 
-	if (STATUS_CODE === 200) {
-		next();
-	} else {
-		const responseBody = {
-			error: message,
-		};
+		if (STATUS_CODE === 200) {
+			next();
+		} else {
+			const responseBody = {
+				error: message,
+			};
 
-		next(res.status(STATUS_CODE).json(responseBody));
+			next(res.status(STATUS_CODE).json(responseBody));
+		}
 	}
 };
 

@@ -1,17 +1,18 @@
 import { Response, Request } from 'express';
-import { collections, connectToDatabase } from '../services/database.services';
+import { collections, connectToDatabase, DataBaseServices } from '../services/database.services';
 
 const ERROR_MSG = 'internal server Error';
+const dataBase = new DataBaseServices(process.env.MONGODB_URI||"", "socialbooks")
 class BooksController {
 	static async getBookById(req: Request, res: Response) {
 		const id = req?.params?.id;
 
-		await connectToDatabase();
+		await dataBase.connect()
 		console.log('getting by ID');
 		try {
 			console.log(`Getting book ID: ${id}`);
 			const query = { short: id };
-			const book = await collections.books?.findOne(query);
+			const book = await dataBase.findBook(id);
 			console.log(`book
 				${book}
 			`);
@@ -24,6 +25,7 @@ class BooksController {
 		} catch (error) {
 			res.status(500).send(ERROR_MSG);
 		}
+		await dataBase.disconnect();
 	}
 
 	static async getAllBooks(req: Request, res: Response) {
