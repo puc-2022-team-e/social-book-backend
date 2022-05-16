@@ -1,83 +1,136 @@
 import { Response, Request } from 'express';
-import { ObjectId } from 'mongodb';
-import { collections, connectToDatabase, DataBaseServices } from '../services/database.services';
-const dataBase = new DataBaseServices(process.env.MONGODB_URI||"", "socialbooks")
+import { DataBaseServices } from '../services/database.services';
 
+const ERROR_MSG = 'internal server Error';
+const dataBase = new DataBaseServices();
 class DiscussionsController {
+	static collection = 'discussions';
 
-	static async getDiscussionById(req: Request, res: Response) {
-		const id = req?.params?.id;
-		await dataBase.connect();
-		try {
-			const discussion = await dataBase.findDiscussion(id);
-
-			if (discussion) {
-				res.status(200).send(discussion);
-			}
-		} catch (error) {
-			res
-				.status(404)
-				.send(
-					`unable to find any document`
-				);
-		}
-	}
-
-    static async getAllDiscussions(req: Request, res: Response) {
-		await connectToDatabase();
-		try {
-			const discussion = await dataBase.findDiscussion();
-			if (discussion) {
-				res.status(200).send(discussion);
-			}
-		} catch (error) {
-			res
-				.status(404)
-				.send(
-					`unable to find match matching document with id: ${req.params.id} `
-				);
-		}
-	}
-
-	static async deleteDiscussionById(req: Request, res: Response) {
-		const id = req?.params?.id;
-		await connectToDatabase();
+	static async getDiscussions(req: Request, res: Response) {
+		const id = req?.params.id;
 
 		try {
-			const query = { _id: new ObjectId(id) };
-			const discussion = await collections.discussions?.deleteOne(query);
-			if (discussion) {
-				res.status(200).send(discussion);
-			}
-		} catch (error) {
-			res
-				.status(404)
-				.send(
-					`unable to delete discussion`
-				);
-		}
-	}
+			var query = {};
+			var discussions;
+			await dataBase.connect();
+			if (id) {
+				const mongoId = dataBase.mongoIDHandler(id);
+				if (!mongoId) {
+					throw new Error(`invalid id`);
+				}
+				query = { _id: mongoId };
 
-	static async insertDiscussion(req: Request, res: Response) {
-		await connectToDatabase();
-		try {
-			const discussion = await collections.discussions?.insertOne(req.body);
-			if (discussion) {
-				res.status(200).send(discussion);
+				discussions = dataBase.findOne(query, this.collection);
 			} else {
-				res
-					.status(500)
-					.send(
-						`unable to add discussion document: ${req.body} `
-					);
+				discussions = await dataBase.findAny(query, this.collection);
 			}
-		} catch (error) {
-			res
-				.status(404)
-				.send(
-					`unable to add discussion document: ${req.body} `
-				);
+			await dataBase.disconnect();
+
+			if (!discussions) {
+				res.status(404).send(`not found`);
+			} else {
+				res.send(200).send(discussions);
+			}
+		} catch (e) {
+			console.error(e);
+			await dataBase.disconnect();
+			res.status(500).send(ERROR_MSG);
 		}
 	}
+
+	static async postDiscussions(req: Request, res: Response) {
+		const discussion = req.body;
+
+		if (discussion) {
+			try {
+				await dataBase.connect();
+				const ret = await dataBase.insertOne(discussion, this.collection);
+				await dataBase.disconnect();
+
+				res.status(201).send({
+					status: 'success',
+					id: ret?.insertedId,
+				});
+			} catch (e) {
+				console.error(e);
+				res.status(500).send(ERROR_MSG);
+			}
+		} else {
+			res.status(500).send({
+				error: ERROR_MSG,
+				message: 'invalid request body; Body must be a discussion object',
+			});
+		}
+	}
+
+	static async updateDiscussion(req: Request, res: Response) {
+		const values = req?.body;
+		const id = req?.params?.id;
+
+		if (id && values) {
+			try {
+				const mongoId = dataBase.mongoIDHandler(id);
+				if (!mongoId) {
+					throw new Error(`invalid ID`);
+				}
+				const query = { _id: mongoId };
+				const newValues = { $set: values };
+				await dataBase.connect();
+				const ret = await dataBase.updateOne(query, newValues, this.collection);
+				await dataBase.disconnect();
+
+				if (ret?.modifiedCount && ret?.modifiedCount > 0) {
+					res.status(200).send({
+						status: 200,
+						message: `Discussion ${id} successfully updated`,
+					});
+				} else {
+					throw new Error(`Error while trying to update discussion id: ${id}`);
+				}
+			} catch (e) {
+				console.error(e);
+				res.status(500).send({
+					status: 500,
+					message: ERROR_MSG,
+					error: e,
+				});
+			}
+		} else {
+			res.status(500).send({
+				status: 500,
+				message: ERROR_MSG + ` Missing Body or ID`,
+			});
+		}
+	}
+
+	static async deleteDiscussion(req: Request, res: Response) {
+		const id = req?.params?.id;
+		if (id) {
+			try{
+				const mongoId = dataBase.mongoIDHandler(id);
+				const query = { _id: mongoId };
+				const ret = await dataBase.deleteOne(query,this.collection);
+				if (ret?.deletedCount === 1) {
+					res.status(200).send({
+						status: 200,
+						message: `deleted: ${ret?.deletedCount}`,
+					});
+				} else {
+					throw new Error(`Cant delete discussion id ${id}`);
+				}
+			}catch(e){
+				res.status(500).send({
+					status: 500,
+					message: e,
+				});
+			}
+		} else {
+			res.status(500).send({
+				status: 500,
+				message: ERROR_MSG + ` Missing ID`,
+			});
+		}
+	}
+	
 }
 export default DiscussionsController;

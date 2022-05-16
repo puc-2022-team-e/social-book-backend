@@ -1,57 +1,107 @@
 import { Response, Request } from 'express';
-import { ObjectId } from 'mongodb';
-import { collections, connectToDatabase } from '../services/database.services';
+import { DataBaseServices } from '../services/database.services';
+
+const ERROR_MSG = 'internal server Error';
+const dataBase = new DataBaseServices();
 
 class CommentariesController {
+	static collection = 'commentaries';
+	static async getAllCommentariesByIdDiscussion(req: Request, res: Response) {
+		const discussionID = req?.params?.discussionid;
 
-    static async getAllCommentariesByIdDiscussion(req: Request, res: Response) {
-		await connectToDatabase();
-		try {
-			const commentaries = await collections.commentaries?.find().toArray();
-			if (commentaries) {
-				res.status(200).send(commentaries);
-			}
-		} catch (error) {
-			res
-				.status(404)
-				.send(
-					`unable to find match matching document with id: ${req.params.id} `
-				);
+		if (discussionID) {
+			const query = { discutionId: discussionID };
+			await dataBase.connect();
+			const allDiscussions = dataBase.findAny(query, this.collection);
+			await dataBase.disconnect();
+			res.send(200).send(allDiscussions);
+		} else {
+			res.status(404).send({
+				status: 404,
+				message: `discussionID ${discussionID} not found`,
+			});
 		}
 	}
 
-	static async deleteComentaryById(req: Request, res: Response) {
-		const id = req?.params?.id;
-		await connectToDatabase();
+	static async getSingleCommentary(req: Request, res: Response) {
+		const commentaryID = req?.params?.commentaryid;
 
-		try {
-			const query = { _id: new ObjectId(id) };
-			const discussion = await collections.commentaries?.deleteOne(query);
-			if (discussion) {
-				res.status(200).send(discussion);
+		if (commentaryID) {
+			const mongoId = dataBase.mongoIDHandler(commentaryID);
+			if (mongoId) {
+				const query = { _id: mongoId };
+				await dataBase.connect();
+				const commentary = await dataBase.findOne(query, this.collection);
+				await dataBase.disconnect();
+				res.status(200).send(commentary);
+			} else {
+				res.status(500).send({
+					status: 500,
+					message: `${ERROR_MSG}: Invalid commentary ID: ${commentaryID}`,
+				});
 			}
-		} catch (error) {
-			res
-				.status(404)
-				.send(
-					`unable to delete discussion`
-				);
+		} else {
+			res.status(404).send({
+				status: 404,
+				message: `Commentary ${commentaryID} not found`,
+			});
 		}
 	}
 
-	static async insertComentary(req: Request, res: Response) {
-		await connectToDatabase();
-		try {
-			const discussion = await collections.commentaries?.insertOne(req.body);
-			if (discussion) {
-				res.status(200).send(discussion);
+	static async insertCommentary(req: Request, res: Response) {
+		const commentary = req.body;
+		if (commentary) {
+			try {
+				await dataBase.connect();
+				const ret = await dataBase.insertOne(commentary, this.collection);
+				await dataBase.disconnect();
+				res.status(201).send({
+					status: 'success',
+					id: ret?.insertedId,
+				});
+			} catch (e) {
+				console.error(e);
+				res.status(500).send(ERROR_MSG);
 			}
-		} catch (error) {
-			res
-				.status(404)
-				.send(
-					`unable to add commentary document: ${req.body} `
-				);
+		} else {
+			res.status(500).send({
+				error: ERROR_MSG,
+				message: 'invalid request; Body must be a commentary object',
+			});
+		}
+	}
+
+	static async deleteCommentaryById(req: Request, res: Response) {
+		const commentaryID = req?.params?.commentaryid;
+
+		if (commentaryID) {
+			try {
+				const mongoId = dataBase.mongoIDHandler(commentaryID);
+				if (mongoId) {
+					const query = { _id: mongoId };
+					await dataBase.connect();
+					const ret = await dataBase.deleteOne(query, this.collection);
+					await dataBase.disconnect();
+					if (ret?.deletedCount === 1) {
+						res.status(200).send({
+							status: 200,
+							message: `deleted: ${ret?.deletedCount}`,
+						});
+					} else {
+						throw new Error(`Cant delete discussion ${commentaryID}`);
+					}
+				} else {
+					res.status(500).send({
+						status: 500,
+						message: `${ERROR_MSG}: Invalid commentary ID: ${commentaryID}`,
+					});
+				}
+			} catch (e) {}
+		} else {
+			res.status(500).send({
+				status: 500,
+				message: ERROR_MSG + ` Missing ID`,
+			});
 		}
 	}
 }

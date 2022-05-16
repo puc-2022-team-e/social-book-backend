@@ -1,43 +1,35 @@
 import { Response, Request } from 'express';
-import { collections, connectToDatabase, DataBaseServices } from '../services/database.services';
+import { DataBaseServices } from '../services/database.services';
 
 const ERROR_MSG = 'internal server Error';
-const dataBase = new DataBaseServices(process.env.MONGODB_URI||"", "socialbooks")
+const dataBase = new DataBaseServices()
 class BooksController {
-	static async getBookById(req: Request, res: Response) {
+	static collection = 'books';
+	static async getBooks(req: Request, res: Response) {
 		const id = req?.params?.id;
 
-		await dataBase.connect()
-		console.log('getting by ID');
 		try {
-			console.log(`Getting book ID: ${id}`);
-			const query = { short: id };
-			const book = await dataBase.findBook(id);
-			console.log(`book
-				${book}
-			`);
-			if (book) {
-				res.status(200).send(book);
-			} else {
-				console.log('not found');
-				res.status(404).send(`book ${id} not found`);
-			}
-		} catch (error) {
-			res.status(500).send(ERROR_MSG);
-		}
-		await dataBase.disconnect();
-	}
+			await dataBase.connect();
+			var books;
+			var query = {};
+			if (id) {
 
-	static async getAllBooks(req: Request, res: Response) {
-		await connectToDatabase();
-		try {
-			const book = await collections.books?.find().toArray();
-			if (book) {
-				res.status(200).send(book);
+				query = this.queryBuilder(id);
+
+				books = await dataBase.findOne(query, this.collection);
 			} else {
-				res.status(404).send(`not found`);
+				books = await dataBase.findAny(query, this.collection);
 			}
-		} catch (error) {
+			await dataBase.disconnect();
+
+			if (!books) {
+				res.status(404).send(`book ${id} not found`);
+			} else {
+				res.status(200).send(books);
+			}
+		} catch (e) {
+			console.error(e);
+			await dataBase.disconnect();
 			res.status(500).send(ERROR_MSG);
 		}
 	}
@@ -48,16 +40,22 @@ class BooksController {
 		if (book) {
 			console.log(`New book: ${book}`);
 			try {
-				await connectToDatabase();
-				console.log('adding book');
-				const ret = await collections.books?.insertOne(book);
+				await dataBase.connect();
+				const ret = await dataBase.insertOne(book, this.collection);
+				await dataBase.disconnect();
 				res.status(201).send({
 					status: 'success',
 					id: ret?.insertedId,
 				});
-			} catch (error) {
+			} catch (e) {
+				console.error(e);
 				res.status(500).send(ERROR_MSG);
 			}
+		} else {
+			res.status(500).send({
+				error: ERROR_MSG,
+				message: 'invalid request body; Body must be a book object',
+			});
 		}
 	}
 
@@ -69,11 +67,15 @@ class BooksController {
 		if (id && values) {
 			console.log(`Updating book ${id}`);
 			try {
-				const query = { short: id };
+				const query = this.queryBuilder(id);
+
 				const newValues = { $set: values };
 
-				await connectToDatabase();
-				const ret = await collections.books?.updateOne(query, newValues);
+				await dataBase.connect();
+
+				const ret = await dataBase.updateOne(query, newValues, this.collection);
+
+				await dataBase.disconnect();
 
 				if (ret?.modifiedCount && ret?.modifiedCount > 0) {
 					res.status(200).send({
@@ -83,12 +85,12 @@ class BooksController {
 				} else {
 					throw new Error(`Error while trying to update book ${id}`);
 				}
-			} catch (error) {
-				console.error(error);
+			} catch (e) {
+				console.error(e);
 				res.status(500).send({
 					status: 500,
 					message: ERROR_MSG,
-					error: error,
+					error: e,
 				});
 			}
 		} else {
@@ -100,14 +102,16 @@ class BooksController {
 	}
 
 	static async deleteBook(req: Request, res: Response) {
-		//to-do delete by mongo _id: query = {ObjectId(id)}
 		const id = req?.params?.id;
 		console.log(`deleting book: ${id}!`);
 		if (id) {
 			try {
-				await connectToDatabase();
-				const query = { short: id };
-				const ret = await collections.books?.deleteOne(query);
+				await dataBase.connect();
+				
+				const query = this.queryBuilder(id);
+
+				const ret = await dataBase.deleteOne(query,this.collection);
+				await dataBase.disconnect();
 				if (ret?.deletedCount === 1) {
 					res.status(200).send({
 						status: 200,
@@ -116,10 +120,10 @@ class BooksController {
 				} else {
 					throw new Error(`Cant delete item ${id}`);
 				}
-			} catch (error) {
+			} catch (e) {
 				res.status(500).send({
 					status: 500,
-					message: error,
+					message: e,
 				});
 			}
 		} else {
@@ -128,6 +132,21 @@ class BooksController {
 				message: ERROR_MSG + ` Missing ID`,
 			});
 		}
+	}
+
+	static queryBuilder(id:string):Object{
+		var bookQuery = {}
+		const mongoId = dataBase.mongoIDHandler(id);
+		if (mongoId) {
+			bookQuery = {
+				$or: [{ short: id }, { _id: mongoId }],
+			};
+		} else {
+			bookQuery = {
+				short: id,
+			};
+		}
+		return bookQuery;
 	}
 }
 export default BooksController;
