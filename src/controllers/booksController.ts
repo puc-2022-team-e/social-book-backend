@@ -2,9 +2,9 @@ import { Response, Request } from 'express';
 import { DataBaseServices } from '../services/database.services';
 
 const ERROR_MSG = 'internal server Error';
-const dataBase = new DataBaseServices()
+const dataBase = new DataBaseServices();
+const COLLECTION = 'books';
 class BooksController {
-	static collection = 'books';
 	static async getBooks(req: Request, res: Response) {
 		const id = req?.params?.id;
 
@@ -13,12 +13,11 @@ class BooksController {
 			var books;
 			var query = {};
 			if (id) {
-
 				query = this.queryBuilder(id);
 
-				books = await dataBase.findOne(query, this.collection);
+				books = await dataBase.findOne(query, COLLECTION);
 			} else {
-				books = await dataBase.findAny(query, this.collection);
+				books = await dataBase.findAny(query, COLLECTION);
 			}
 			await dataBase.disconnect();
 
@@ -41,7 +40,7 @@ class BooksController {
 			console.log(`New book: ${book}`);
 			try {
 				await dataBase.connect();
-				const ret = await dataBase.insertOne(book, this.collection);
+				const ret = await dataBase.insertOne(book, COLLECTION);
 				await dataBase.disconnect();
 				res.status(201).send({
 					status: 'success',
@@ -73,7 +72,7 @@ class BooksController {
 
 				await dataBase.connect();
 
-				const ret = await dataBase.updateOne(query, newValues, this.collection);
+				const ret = await dataBase.updateOne(query, newValues, COLLECTION);
 
 				await dataBase.disconnect();
 
@@ -107,10 +106,10 @@ class BooksController {
 		if (id) {
 			try {
 				await dataBase.connect();
-				
+
 				const query = this.queryBuilder(id);
 
-				const ret = await dataBase.deleteOne(query,this.collection);
+				const ret = await dataBase.deleteOne(query, COLLECTION);
 				await dataBase.disconnect();
 				if (ret?.deletedCount === 1) {
 					res.status(200).send({
@@ -134,8 +133,25 @@ class BooksController {
 		}
 	}
 
-	static queryBuilder(id:string):Object{
-		var bookQuery = {}
+	static async searchBookByString(req: Request, res: Response) {
+		console.log(`seaching by query pattern`)
+		const pattern = req.query.q;
+		console.log(`pattern: ${pattern}`)
+		if (pattern) {
+			const query = { $text: { $search: pattern } };
+			console.log(`query: ${query}`)
+			await dataBase.connect();
+			console.log(`collection ${COLLECTION}`)
+			const books = await dataBase.findAny(query, COLLECTION);
+			await dataBase.disconnect();
+			res.status(200).send(books);
+		} else {
+			res.status(404).send({});
+		}
+	}
+
+	static queryBuilder(id: string): Object {
+		var bookQuery = {};
 		const mongoId = dataBase.mongoIDHandler(id);
 		if (mongoId) {
 			bookQuery = {

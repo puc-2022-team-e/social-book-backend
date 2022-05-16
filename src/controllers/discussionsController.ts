@@ -3,9 +3,8 @@ import { DataBaseServices } from '../services/database.services';
 
 const ERROR_MSG = 'internal server Error';
 const dataBase = new DataBaseServices();
+const COLLECTION = 'discussions';
 class DiscussionsController {
-	static collection = 'discussions';
-
 	static async getDiscussions(req: Request, res: Response) {
 		const id = req?.params.id;
 
@@ -20,9 +19,9 @@ class DiscussionsController {
 				}
 				query = { _id: mongoId };
 
-				discussions = dataBase.findOne(query, this.collection);
+				discussions = dataBase.findOne(query, COLLECTION);
 			} else {
-				discussions = await dataBase.findAny(query, this.collection);
+				discussions = await dataBase.findAny(query, COLLECTION);
 			}
 			await dataBase.disconnect();
 
@@ -44,7 +43,7 @@ class DiscussionsController {
 		if (discussion) {
 			try {
 				await dataBase.connect();
-				const ret = await dataBase.insertOne(discussion, this.collection);
+				const ret = await dataBase.insertOne(discussion, COLLECTION);
 				await dataBase.disconnect();
 
 				res.status(201).send({
@@ -76,7 +75,7 @@ class DiscussionsController {
 				const query = { _id: mongoId };
 				const newValues = { $set: values };
 				await dataBase.connect();
-				const ret = await dataBase.updateOne(query, newValues, this.collection);
+				const ret = await dataBase.updateOne(query, newValues, COLLECTION);
 				await dataBase.disconnect();
 
 				if (ret?.modifiedCount && ret?.modifiedCount > 0) {
@@ -109,7 +108,7 @@ class DiscussionsController {
 			try{
 				const mongoId = dataBase.mongoIDHandler(id);
 				const query = { _id: mongoId };
-				const ret = await dataBase.deleteOne(query,this.collection);
+				const ret = await dataBase.deleteOne(query,COLLECTION);
 				if (ret?.deletedCount === 1) {
 					res.status(200).send({
 						status: 200,

@@ -11,6 +11,7 @@ const routes = Router();
 //books 
 routes.get('/b', auth, BooksController.getBooks);
 routes.get('/b/:id', auth, BooksController.getBooks);
+routes.get('/search/', auth,BooksController.searchBookByString);
 routes.post('/b', auth, BooksController.postBook);
 routes.put('/b/:id',auth, BooksController.updateBook);
 routes.delete('/b/:id', auth, BooksController.deleteBook);

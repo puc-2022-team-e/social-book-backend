@@ -3,16 +3,15 @@ import { DataBaseServices } from '../services/database.services';
 
 const ERROR_MSG = 'internal server Error';
 const dataBase = new DataBaseServices();
-
+const COLLECTION = 'commentaries';
 class CommentariesController {
-	static collection = 'commentaries';
 	static async getAllCommentariesByIdDiscussion(req: Request, res: Response) {
 		const discussionID = req?.params?.discussionid;
 
 		if (discussionID) {
 			const query = { discutionId: discussionID };
 			await dataBase.connect();
-			const allDiscussions = dataBase.findAny(query, this.collection);
+			const allDiscussions = dataBase.findAny(query, COLLECTION);
 			await dataBase.disconnect();
 			res.send(200).send(allDiscussions);
 		} else {
@@ -31,7 +30,7 @@ class CommentariesController {
 			if (mongoId) {
 				const query = { _id: mongoId };
 				await dataBase.connect();
-				const commentary = await dataBase.findOne(query, this.collection);
+				const commentary = await dataBase.findOne(query, COLLECTION);
 				await dataBase.disconnect();
 				res.status(200).send(commentary);
 			} else {
@@ -53,7 +52,7 @@ class CommentariesController {
 		if (commentary) {
 			try {
 				await dataBase.connect();
-				const ret = await dataBase.insertOne(commentary, this.collection);
+				const ret = await dataBase.insertOne(commentary, COLLECTION);
 				await dataBase.disconnect();
 				res.status(201).send({
 					status: 'success',
@@ -80,7 +79,7 @@ class CommentariesController {
 				if (mongoId) {
 					const query = { _id: mongoId };
 					await dataBase.connect();
-					const ret = await dataBase.deleteOne(query, this.collection);
+					const ret = await dataBase.deleteOne(query, COLLECTION);
 					await dataBase.disconnect();
 					if (ret?.deletedCount === 1) {
 						res.status(200).send({
