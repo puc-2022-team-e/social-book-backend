@@ -9,16 +9,17 @@ class BooksController {
 		const id = req?.params?.id;
 
 		try {
-			await dataBase.connect();
 			var books;
 			var query = {};
 			if (id) {
-				query = this.queryBuilder(id);
-
-				books = await dataBase.findOne(query, COLLECTION);
-			} else {
-				books = await dataBase.findAny(query, COLLECTION);
+				console.log(`getBooks-> id: ${id}`)
+				query = queryBuilder(id);
 			}
+
+			await dataBase.connect();
+
+			books = await dataBase.findAny(query, COLLECTION);
+
 			await dataBase.disconnect();
 
 			if (!books) {
@@ -35,7 +36,7 @@ class BooksController {
 
 	static async postBook(req: Request, res: Response) {
 		const book = req.body;
-
+		console.log( `adding new book`)
 		if (book) {
 			console.log(`New book: ${book}`);
 			try {
@@ -66,7 +67,7 @@ class BooksController {
 		if (id && values) {
 			console.log(`Updating book ${id}`);
 			try {
-				const query = this.queryBuilder(id);
+				const query = queryBuilder(id);
 
 				const newValues = { $set: values };
 
@@ -107,7 +108,7 @@ class BooksController {
 			try {
 				await dataBase.connect();
 
-				const query = this.queryBuilder(id);
+				const query = queryBuilder(id);
 
 				const ret = await dataBase.deleteOne(query, COLLECTION);
 				await dataBase.disconnect();
@@ -149,9 +150,11 @@ class BooksController {
 			res.status(404).send({});
 		}
 	}
+}
 
-	static queryBuilder(id: string): Object {
-		var bookQuery = {};
+function queryBuilder(id: any){
+	var bookQuery = {};
+	if(id){
 		const mongoId = dataBase.mongoIDHandler(id);
 		if (mongoId) {
 			bookQuery = {
@@ -162,7 +165,7 @@ class BooksController {
 				short: id,
 			};
 		}
-		return bookQuery;
 	}
-}
+	return bookQuery;
+} 
 export default BooksController;

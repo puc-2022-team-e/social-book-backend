@@ -13,7 +13,7 @@ class CommentariesController {
 			await dataBase.connect();
 			const allDiscussions = dataBase.findAny(query, COLLECTION);
 			await dataBase.disconnect();
-			res.send(200).send(allDiscussions);
+			res.status(200).send(allDiscussions);
 		} else {
 			res.status(404).send({
 				status: 404,

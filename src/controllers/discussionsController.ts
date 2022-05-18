@@ -7,11 +7,11 @@ const COLLECTION = 'discussions';
 class DiscussionsController {
 	static async getDiscussions(req: Request, res: Response) {
 		const id = req?.params.id;
-
+		console.log(`getting discussions id: ${id}`)
 		try {
 			var query = {};
 			var discussions;
-			await dataBase.connect();
+			
 			if (id) {
 				const mongoId = dataBase.mongoIDHandler(id);
 				if (!mongoId) {
@@ -20,15 +20,18 @@ class DiscussionsController {
 				query = { _id: mongoId };
 
 				discussions = dataBase.findOne(query, COLLECTION);
-			} else {
-				discussions = await dataBase.findAny(query, COLLECTION);
 			}
-			await dataBase.disconnect();
 
+			await dataBase.connect();
+			console.log(`query: ${JSON.stringify(query)}`);
+
+			discussions = await dataBase.findAny(query, COLLECTION);
+			await dataBase.disconnect();
+			console.log(`Discussions: ${JSON.stringify(discussions)}`)
 			if (!discussions) {
 				res.status(404).send(`not found`);
 			} else {
-				res.send(200).send(discussions);
+				res.status(200).send(discussions);
 			}
 		} catch (e) {
 			console.error(e);
