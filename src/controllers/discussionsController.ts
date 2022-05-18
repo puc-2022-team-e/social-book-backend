@@ -18,8 +18,6 @@ class DiscussionsController {
 					throw new Error(`invalid id`);
 				}
 				query = { _id: mongoId };
-
-				discussions = dataBase.findOne(query, COLLECTION);
 			}
 
 			await dataBase.connect();
