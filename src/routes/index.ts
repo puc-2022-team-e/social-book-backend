@@ -9,21 +9,25 @@ import auth from '../middleware/auth';
 const routes = Router();
 
 //books 
-routes.get('/b', auth, BooksController.getAllBooks);
-routes.get('/b/:id', auth, BooksController.getBookById);
-routes.post('/b/new', auth, BooksController.postBook);
-routes.put('/b/update/:id',auth, BooksController.updateBook);
-routes.delete('/b/delete/:id', auth, BooksController.deleteBook);
+routes.get('/b', auth, BooksController.getBooks);
+routes.get('/b/:id', auth, BooksController.getBooks);
+routes.get('/search/', auth,BooksController.searchBookByString);
+routes.post('/b', auth, BooksController.postBook);
+routes.put('/b/:id',auth, BooksController.updateBook);
+routes.delete('/b/:id', auth, BooksController.deleteBook);
 
 //discussions
-routes.get("/d", auth, DiscussionsController.getAllDiscussions);
-routes.post("/d", auth, DiscussionsController.insertDiscussion);
-routes.post("/d/:id", auth, DiscussionsController.deleteDiscussionById);
+routes.get("/d", auth, DiscussionsController.getDiscussions);
+routes.get("/d/:id", auth, DiscussionsController.getDiscussions);
+routes.post("/d", auth, DiscussionsController.postDiscussions);
+routes.put("/d/:id", auth, DiscussionsController.updateDiscussion);
+routes.delete("/d/:id", auth, DiscussionsController.deleteDiscussion);
 
 // comentaries
-routes.get("/c/:idDiscussion", auth, CommentariesController.getAllCommentariesByIdDiscussion);
-routes.post("/c", auth, CommentariesController.insertComentary);
-routes.post("/c/:id", auth, CommentariesController.deleteComentaryById);
+routes.get("/c/:discussionid", auth, CommentariesController.getAllCommentariesByIdDiscussion);
+routes.get("/c/:commentaryid", auth, CommentariesController.getSingleCommentary)
+routes.post("/c/:discussionid", auth, CommentariesController.insertCommentary);
+routes.delete("/c/:commentaryid", auth, CommentariesController.deleteCommentaryById);
 
 export default routes;
 
