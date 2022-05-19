@@ -1,26 +1,25 @@
 import { Response, Request } from 'express';
-import { DataBaseServices } from '../services/database.services';
+import BookRepository from '../services/database/repository/bookRepository';
 
 const ERROR_MSG = 'internal server Error';
-const dataBase = new DataBaseServices();
 const COLLECTION = 'books';
 class BooksController {
+
+	private static bookRepository = new BookRepository();
+	
 	static async getBooks(req: Request, res: Response) {
 		const id = req?.params?.id;
 
 		try {
 			var books;
 			var query = {};
+			
 			if (id) {
 				console.log(`getBooks-> id: ${id}`)
-				query = queryBuilder(id);
+				query = await BooksController.bookRepository.queryBuilder(id);
 			}
 
-			await dataBase.connect();
-
-			books = await dataBase.findAny(query, COLLECTION);
-
-			await dataBase.disconnect();
+			books = await BooksController.bookRepository.findAny(query, COLLECTION);
 
 			if (!books) {
 				res.status(404).send(`book ${id} not found`);
@@ -29,7 +28,6 @@ class BooksController {
 			}
 		} catch (e) {
 			console.error(e);
-			await dataBase.disconnect();
 			res.status(500).send(ERROR_MSG);
 		}
 	}
@@ -40,9 +38,7 @@ class BooksController {
 		if (book) {
 			console.log(`New book: ${book}`);
 			try {
-				await dataBase.connect();
-				const ret = await dataBase.insertOne(book, COLLECTION);
-				await dataBase.disconnect();
+				const ret = await BooksController.bookRepository.insertOne(book, COLLECTION);
 				res.status(201).send({
 					status: 'success',
 					id: ret?.insertedId,
@@ -67,16 +63,10 @@ class BooksController {
 		if (id && values) {
 			console.log(`Updating book ${id}`);
 			try {
-				const query = queryBuilder(id);
+				const query = await BooksController.bookRepository.queryBuilder(id);
 
 				const newValues = { $set: values };
-
-				await dataBase.connect();
-
-				const ret = await dataBase.updateOne(query, newValues, COLLECTION);
-
-				await dataBase.disconnect();
-
+				const ret = await BooksController.bookRepository.updateOne(query, newValues, COLLECTION);
 				if (ret?.modifiedCount && ret?.modifiedCount > 0) {
 					res.status(200).send({
 						status: 200,
@@ -106,12 +96,8 @@ class BooksController {
 		console.log(`deleting book: ${id}!`);
 		if (id) {
 			try {
-				await dataBase.connect();
-
-				const query = queryBuilder(id);
-
-				const ret = await dataBase.deleteOne(query, COLLECTION);
-				await dataBase.disconnect();
+				const query = await BooksController.bookRepository.queryBuilder(id);
+				const ret = await BooksController.bookRepository.deleteOne(query, COLLECTION);
 				if (ret?.deletedCount === 1) {
 					res.status(200).send({
 						status: 200,
@@ -141,31 +127,12 @@ class BooksController {
 		if (pattern) {
 			const query = { $text: { $search: pattern } };
 			console.log(`query: ${query}`)
-			await dataBase.connect();
 			console.log(`collection ${COLLECTION}`)
-			const books = await dataBase.findAny(query, COLLECTION);
-			await dataBase.disconnect();
+			const books = await BooksController.bookRepository.findAny(query, COLLECTION);
 			res.status(200).send(books);
 		} else {
 			res.status(404).send({});
 		}
 	}
 }
-
-function queryBuilder(id: any){
-	var bookQuery = {};
-	if(id){
-		const mongoId = dataBase.mongoIDHandler(id);
-		if (mongoId) {
-			bookQuery = {
-				$or: [{ short: id }, { _id: mongoId }],
-			};
-		} else {
-			bookQuery = {
-				short: id,
-			};
-		}
-	}
-	return bookQuery;
-} 
 export default BooksController;
