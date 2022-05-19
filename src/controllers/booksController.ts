@@ -1,4 +1,5 @@
 import { Response, Request } from 'express';
+import { BooksSerializer } from '../data/bookSerializer';
 import { DataBaseServices } from '../services/database.services';
 
 const ERROR_MSG = 'internal server Error';
@@ -35,13 +36,14 @@ class BooksController {
 	}
 
 	static async postBook(req: Request, res: Response) {
-		const book = req.body;
+		const bookPayload = req.body;
 		console.log( `adding new book`)
-		if (book) {
-			console.log(`New book: ${book}`);
+		if (bookPayload) {
+			const bookInitialSetUP = BooksSerializer.InitialBookObject(bookPayload)
+			console.log(`New book: ${bookInitialSetUP}`);
 			try {
 				await dataBase.connect();
-				const ret = await dataBase.insertOne(book, COLLECTION);
+				const ret = await dataBase.insertOne(bookInitialSetUP, COLLECTION);
 				await dataBase.disconnect();
 				res.status(201).send({
 					status: 'success',
