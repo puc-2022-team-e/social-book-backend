@@ -9,11 +9,11 @@ class CommentariesController {
 		const discussionID = req?.params?.discussionid;
 
 		if (discussionID) {
-			const query = { discutionId: discussionID };
+			const query = { discussionId: discussionID };
 			await dataBase.connect();
-			const allDiscussions = dataBase.findAny(query, COLLECTION);
+			const allCommentaries = await dataBase.findAny(query, COLLECTION);
 			await dataBase.disconnect();
-			res.status(200).send(allDiscussions);
+			res.status(200).send(allCommentaries);
 		} else {
 			res.status(404).send({
 				status: 404,
