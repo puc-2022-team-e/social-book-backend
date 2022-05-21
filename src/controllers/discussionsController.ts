@@ -1,10 +1,19 @@
 import { Response, Request } from 'express';
-import { DataBaseServices } from '../services/database.services';
+import Discussion from '../domain/entities/discussion';
+import DiscussionValidator from '../domain/validators/discussionValidator';
+import BookRepository from '../services/database/repository/bookRepository';
+import DiscussionRepository from '../services/database/repository/discussionRepository';
 
+
+const mapper = require('automapper-js');
 const ERROR_MSG = 'internal server Error';
-const dataBase = new DataBaseServices();
-const COLLECTION = 'discussions';
+const COLLECTION_DISCUSSIONS = 'discussions';
+const COLLECTION_BOOKS = 'books';
 class DiscussionsController {
+
+	private static discussionRepository = new DiscussionRepository();
+	private static bookRepository = new BookRepository();
+
 	static async getDiscussions(req: Request, res: Response) {
 		const id = req?.params.id;
 		console.log(`getting discussions id: ${id}`)
@@ -13,19 +22,16 @@ class DiscussionsController {
 			var discussions;
 			
 			if (id) {
-				const mongoId = dataBase.mongoIDHandler(id);
+				const mongoId = await DiscussionsController.bookRepository.queryBuilder(id);
 				if (!mongoId) {
 					throw new Error(`invalid id`);
 				}
 				query = { _id: mongoId };
 			}
-
-			await dataBase.connect();
 			console.log(`query: ${JSON.stringify(query)}`);
-
-			discussions = await dataBase.findAny(query, COLLECTION);
-			await dataBase.disconnect();
+			discussions = await DiscussionsController.discussionRepository.findAny(query, COLLECTION_DISCUSSIONS);
 			console.log(`Discussions: ${JSON.stringify(discussions)}`)
+
 			if (!discussions) {
 				res.status(404).send(`not found`);
 			} else {
@@ -33,19 +39,38 @@ class DiscussionsController {
 			}
 		} catch (e) {
 			console.error(e);
-			await dataBase.disconnect();
 			res.status(500).send(ERROR_MSG);
 		}
 	}
 
 	static async postDiscussions(req: Request, res: Response) {
-		const discussion = req.body;
+		
+		const validator = new DiscussionValidator();
+		const discussion = mapper(Discussion, req.body);
+		const erros = validator.validate(discussion as DiscussionModel)
 
+		if(Object.keys(erros).length > 0)
+		{
+			res.status(500).send({
+				error: ERROR_MSG,
+				message: `Object Discussion inválido: ${JSON.stringify(erros)}`});
+			
+			return;
+		}
+						
 		if (discussion) {
 			try {
-				await dataBase.connect();
-				const ret = await dataBase.insertOne(discussion, COLLECTION);
-				await dataBase.disconnect();
+				const books = await DiscussionsController.bookRepository.findAny(await DiscussionsController.bookRepository.queryBuilder(discussion.bookId), COLLECTION_BOOKS);
+				if(books.length == 0)
+				{
+					res.status(500).send({
+						error: ERROR_MSG,
+						message: `O identificador do livro ${discussion.bookId} não está registrado na base de dados.`});
+					
+						return;
+				}
+
+				const ret = await DiscussionsController.discussionRepository.insertOne(discussion, COLLECTION_DISCUSSIONS);
 
 				res.status(201).send({
 					status: 'success',
@@ -69,15 +94,14 @@ class DiscussionsController {
 
 		if (id && values) {
 			try {
-				const mongoId = dataBase.mongoIDHandler(id);
+				const mongoId = await DiscussionsController.discussionRepository.queryBuilder(id);
 				if (!mongoId) {
 					throw new Error(`invalid ID`);
 				}
 				const query = { _id: mongoId };
 				const newValues = { $set: values };
-				await dataBase.connect();
-				const ret = await dataBase.updateOne(query, newValues, COLLECTION);
-				await dataBase.disconnect();
+				
+				const ret = await DiscussionsController.discussionRepository.updateOne(query, newValues, COLLECTION_DISCUSSIONS);
 
 				if (ret?.modifiedCount && ret?.modifiedCount > 0) {
 					res.status(200).send({
@@ -107,9 +131,9 @@ class DiscussionsController {
 		const id = req?.params?.id;
 		if (id) {
 			try{
-				const mongoId = dataBase.mongoIDHandler(id);
+				const mongoId = await DiscussionsController.discussionRepository.queryBuilder(id);
 				const query = { _id: mongoId };
-				const ret = await dataBase.deleteOne(query,COLLECTION);
+				const ret = await DiscussionsController.discussionRepository.deleteOne(query,COLLECTION_DISCUSSIONS);
 				if (ret?.deletedCount === 1) {
 					res.status(200).send({
 						status: 200,
