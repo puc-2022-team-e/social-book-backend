@@ -33,11 +33,10 @@ class BooksController {
 	}
 
 	static async postBook(req: Request, res: Response) {
-		const bookPayload = req.body;
+		const book = req.body;
 		console.log( `adding new book`)
-		if (bookPayload) {
-			const bookInitialSetUP = BooksSerializer.InitialBookObject(bookPayload)
-			console.log(`New book: ${bookInitialSetUP}`);
+		if (book) {
+			console.log(`New book: ${book}`);
 			try {
 				const ret = await BooksController.bookRepository.insertOne(book, COLLECTION);
 				res.status(201).send({
