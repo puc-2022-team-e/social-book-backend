@@ -1,14 +1,11 @@
 import * as mongoDB from 'mongodb';
-
 export class DataBaseServices {
 	mongoClient: mongoDB.MongoClient;
 	db: mongoDB.Db;
 
-	constructor() {
+	constructor(mongoURI:string){
 		try {
-			this.mongoClient = new mongoDB.MongoClient(
-				process.env.MONGODB_URI || 'localhost'
-			);
+			this.mongoClient = new mongoDB.MongoClient(mongoURI);
 			this.db = this.mongoClient.db('socialbooks');
 		} catch (e) {
 			console.error(e);
@@ -16,11 +13,9 @@ export class DataBaseServices {
 		}
 	}
 
-	async connect() {
-		console.log(`mongoDB Connected`);
+	async connect(){
 		await this.mongoClient.connect();
 	}
-
 	async disconnect() {
 		console.log(`mongoDB Disconnected`);
 		await this.mongoClient.close();
@@ -51,8 +46,24 @@ export class DataBaseServices {
 	async deleteMany(query: Object, collection: string) {
 		return this.db.collection(collection).deleteMany(query);
 	}
+	
+	async queryBuilder(id: any){
+        var query = {};
+        if(id){
+            const mongoId = this.mongoIDHandler(id);
+            if (mongoId) {
+                query = {
+                    $or: [{ short: id }, { _id: mongoId }],
+                };
+            } else {
+                query = {
+                    short: id,
+                };
+            }
+        }
+        return query;
+    }
 
-	// TODO create method to return query = { _id:mongoID}
 	mongoIDHandler(id?: string) {
 		if (id) {
 			if (mongoDB.ObjectId.isValid(id)) {
@@ -65,27 +76,3 @@ export class DataBaseServices {
 		}
 	}
 }
-
-//To-Do Factory
-// export interface DBServicesFactory {
-// 	mongoClient: mongoDB.MongoClient;
-// 	db: mongoDB.Db;
-
-// 	connect(): Promise<void>;
-
-// 	disconnect(): Promise<void>;
-
-// 	findOne(query: Object,collectionName: string): Promise<mongoDB.WithId<mongoDB.Document>>;
-
-// 	findAny(query: Object,collection: string): Promise<mongoDB.WithId<mongoDB.Document>[]>;
-
-// 	insertOne(document: Object,collection: string): Promise<mongoDB.InsertOneResult<mongoDB.Document>>;
-
-// 	updateOne(query: Object,newValues: Object,collection: string): Promise<mongoDB.UpdateResult>;
-
-// 	deleteOne(query: Object, collection: string): Promise<mongoDB.DeleteResult>;
-
-// 	deleteMany(query: Object, collection: string): Promise<mongoDB.DeleteResult>;
-
-// 	mongoIDHandler(id?: string): mongoDB.ObjectId | null;
-// }
