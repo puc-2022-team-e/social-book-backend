@@ -6,6 +6,9 @@ import { DataBaseServices } from '../services/database.services';
 
 declare global {
 	var server: Express.Application;
+	var mongoURI:string
+	var mongoMock:MongoMemoryServer;
+	var dbServices:DataBaseServices
 }
 
 const apiPath = '/api/v1/';
@@ -14,13 +17,24 @@ chai.use(chaiHttp);
 chai.should();
 
 describe(`server`, () => {
+
+
+	describe('testing dataBaseServices', ()=>{
+		it('mongo service should start', async ()=>{
+			global.mongoMock= await MongoMemoryServer.create();
+			global.mongoURI = global.mongoMock.getUri();
+			global.dbServices = new DataBaseServices(global.mongoURI);
+			global.dbServices.connect();
+			chai.expect(global.dbServices).not.to.be.undefined;
+			chai.expect(global.dbServices.db.databaseName).to.be.equal('socialbooks');
+			global.dbServices.disconnect();
+		});
+	});
+
 	describe(`api ping`, () => {
 		it('should be status 200', async () => {
-			const mongod = await MongoMemoryServer.create();
-			const uri = mongod.getUri();
-			const dbServer = new DataBaseServices(uri);
-			await dbServer.connect();
-			const app = new HTTPServer(dbServer);
+			await global.dbServices.connect();
+			const app = new HTTPServer(global.dbServices);
 			global.server = app.server;
 			chai
 				.request(global.server)

@@ -16,6 +16,7 @@ export class DataBaseServices {
 	async connect(){
 		await this.mongoClient.connect();
 	}
+	
 	async disconnect() {
 		console.log(`mongoDB Disconnected`);
 		await this.mongoClient.close();

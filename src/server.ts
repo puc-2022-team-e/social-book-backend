@@ -48,11 +48,12 @@ process.on('unhandledRejection', (e) => {
 	throw new Error('Deu ruin: unhandledRejection');
 });
 
-(async () => {
+export async function server(mongoUri:string) {
 	console.log("[socialBooks-server][starting]")
 	try {
 		console.info(`Starting Server mode ${config.serverMod}`);
-		const dbServer = new DataBaseServices(config.mongoURI);
+		console.info(`MongoURI: ${mongoUri}`);
+		const dbServer = new DataBaseServices(mongoUri);
 		await dbServer.connect();
 
 		const server = new HTTPServer(dbServer);
@@ -62,4 +63,7 @@ process.on('unhandledRejection', (e) => {
 		if (e.toPrint) throw new Error(e.toPrint());
 		process.exit(1);
 	}
-})();
+};
+
+//global.mongURI used for test
+server(global.mongoURI||config.mongoURI);
