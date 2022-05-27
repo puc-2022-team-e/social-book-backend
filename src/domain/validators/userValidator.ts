@@ -16,5 +16,11 @@ export default class UserValidator extends Validator<UserModel>  {
         // email
         this.ruleFor('email').emailAddress()
         .withMessage('Por favor, informar um e-mail válido.');
+
+        // perfil 
+        this.ruleFor('perfil')
+        .notNull()
+        .must(perfil => perfil == 'admin' || perfil == 'literato')
+        .withMessage('Por favor, informar um perfil válido. [admin, literato]');
     }
   }

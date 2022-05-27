@@ -3,12 +3,12 @@ import Commentary from '../domain/entities/commentary';
 import CommentaryValidator from '../domain/validators/commentaryValidator';
 import CommentaryRepository from '../services/database/repository/commentaryRepository';
 import DiscussionRepository from '../services/database/repository/discussionRepository';
+import ControllerBase from './ControllerBase';
 
-const mapper = require('automapper-js');
 const ERROR_MSG = 'internal server Error';
 const COLLECTION = 'commentaries';
 const COLLECTION_DISCUSSIONS = 'discussions';
-class CommentariesController {
+class CommentariesController extends ControllerBase {
 
 	private static commentaryRepository = new CommentaryRepository();
 	private static discussionRepository = new DiscussionRepository();
@@ -53,9 +53,7 @@ class CommentariesController {
 
 	static async insertCommentary(req: Request, res: Response) {
 
-		const validator = new CommentaryValidator();
-		const commentary = mapper(Commentary, req.body);
-		const erros = validator.validate(commentary as CommentaryModel)
+		const [commentary,erros] = CommentariesController.applyValidationByEntityAndModel(CommentaryValidator,Commentary, <T extends CommentaryModel>(obj: T) => {}, req.body);
 
 		if(Object.keys(erros).length > 0)
 		{
