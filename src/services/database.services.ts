@@ -2,11 +2,13 @@ import * as mongoDB from 'mongodb';
 export class DataBaseServices {
 	mongoClient: mongoDB.MongoClient;
 	db: mongoDB.Db;
+	isConnected: boolean;
 
 	constructor(mongoURI:string){
 		try {
 			this.mongoClient = new mongoDB.MongoClient(mongoURI);
 			this.db = this.mongoClient.db('socialbooks');
+			this.isConnected = false;
 		} catch (e) {
 			console.error(e);
 			throw new Error(`deu ruim DataBaseServices`);
@@ -14,12 +16,20 @@ export class DataBaseServices {
 	}
 
 	async connect(){
-		await this.mongoClient.connect();
+		if (!this.isConnected){
+			await this.mongoClient.connect();
+			this.isConnected = true;
+		}
+		console.log(`mongoDB is Connected`);
+		
 	}
 	
 	async disconnect() {
-		console.log(`mongoDB Disconnected`);
-		await this.mongoClient.close();
+		if (this.isConnected){
+			console.log(`mongoDB Disconnected`);
+			await this.mongoClient.close();
+			this.isConnected = false;
+		}
 	}
 
 	async findOne(query: Object, collectionName: string) {
