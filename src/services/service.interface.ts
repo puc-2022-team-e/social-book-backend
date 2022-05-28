@@ -1,4 +1,4 @@
-import { DataBaseServices } from "../database.services";
+import { DataBaseServices } from "./database.services";
 
 export default interface Services {
 	db:DataBaseServices,

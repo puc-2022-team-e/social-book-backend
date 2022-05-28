@@ -1,6 +1,6 @@
 import express, { Response, Request } from 'express';
 import auth from '../middleware/auth';
-import { BooksServices } from '../services/book.service';
+import { BooksServices } from '../services/book/book.service';
 import { DataBaseServices } from '../services/database.services';
 const router = express.Router();
 

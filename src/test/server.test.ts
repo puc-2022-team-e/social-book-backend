@@ -4,10 +4,8 @@ import { HTTPServer } from '../services/httpServer.services';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { DataBaseServices } from '../services/database.services';
 import { bookMock } from './test.data/book.mock';
-import config from '../config'
+import config from '../config';
 import auth from '../middleware/auth';
-import { Response, Request } from 'express';
-import { AutoEncryptionLoggerLevel } from 'mongodb';
 
 declare global {
 	var server: HTTPServer;
@@ -168,7 +166,6 @@ describe(`instancing server`, () => {
 		});
 	});
 
-
 	describe(`/GET ${apiPath}/b/`, () => {
 		it('it should fail to get all books return status code 500', (done) => {
 			global.server.db.disconnect().then(() => {
@@ -224,6 +221,17 @@ describe(`instancing server`, () => {
 			});
 		});
 	});
+
+	/*
+	 * dataBase Service error
+	 */
+	// describe('Try do active mongoDB with wrong URI should fail', () => {
+	// 	it('bad uri', async() => {
+	// 		chai
+	// 			.expect(new DataBaseServices('local-host'))
+	// 			.to.throw(new Error(`deu ruim DataBaseServices`));
+	// 	});
+	// });
 
 	/*
 	 * auth stub

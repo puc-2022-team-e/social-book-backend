@@ -1,14 +1,17 @@
-import { DataBaseServices } from './database.services';
-import { ApiResponse } from './interface/api.response.interface';
-import Services from './interface/service.interface';
+import { DataBaseServices } from '../database.services';
+import { ApiResponse } from '../api.response.interface';
+import Services from '../service.interface';
+import BookValidator from '../book/book.validator'
+import BooksInterface from './book.interface';
 
 export class BooksServices implements Services {
 	db: DataBaseServices;
 	collection: string;
-
+	bookValidator:BookValidator;
 	constructor(db: DataBaseServices) {
 		this.db = db;
 		this.collection = 'books';
+		this.bookValidator = new BookValidator();
 	}
 
 	async getBooks(bookId?: string): Promise<ApiResponse> {
@@ -57,15 +60,22 @@ export class BooksServices implements Services {
 	async postBook(book: Object): Promise<ApiResponse> {
 		var mongoStatusCode = 404;
 		var responseBody = {};
-
 		try {
-			const ret = await this.db.insertOne(book, this.collection);
-			if (ret?.insertedId) {
-				mongoStatusCode = 201;
-				responseBody = {
-					status: 'success',
-					id: ret?.insertedId,
-				};
+			//try to cast the post object as a Book Object
+			var validBook = <BooksInterface> book
+			var hasProblems = this.bookValidator.validate(validBook)
+			if (Object.keys(hasProblems).length === 0){
+				const ret = await this.db.insertOne(book, this.collection);
+				if (ret?.insertedId) {
+					mongoStatusCode = 201;
+					responseBody = {
+						status: 'success',
+						id: ret?.insertedId,
+					};
+				}
+			}else{
+				mongoStatusCode = 500;
+				responseBody = hasProblems;
 			}
 		} catch (e) {
 			//console.error(e);

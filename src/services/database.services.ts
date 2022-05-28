@@ -10,7 +10,7 @@ export class DataBaseServices {
 			this.db = this.mongoClient.db('socialbooks');
 			this.isConnected = false;
 		} catch (e) {
-			console.error(e);
+			//console.error(e);
 			throw new Error(`deu ruim DataBaseServices`);
 		}
 	}
