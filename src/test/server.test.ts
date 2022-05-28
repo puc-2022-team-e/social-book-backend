@@ -6,6 +6,7 @@ import { DataBaseServices } from '../services/database.services';
 import { bookMock } from './test.data/book.mock';
 import config from '../config';
 import auth from '../middleware/auth';
+import { discussionMock } from './test.data/discussion.mock';
 
 declare global {
 	var server: HTTPServer;
@@ -147,6 +148,39 @@ describe(`instancing server`, () => {
 				});
 		});
 	});
+
+	/*
+	 * api/v1/d Discussions
+	 */
+
+	describe(`/POST ${apiPath}/d/`, () => {
+		it('it should return status code 200', (done) => {
+			chai
+				.request(global.server.server())
+				.post(`${apiPath}/d/`)
+				.send(discussionMock)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('array');
+					done();
+				});
+		});
+	});
+
+	describe(`/GET ${apiPath}/d/`, () => {
+		it('it should return status code 200', (done) => {
+			chai
+				.request(global.server.server())
+				.get(`${apiPath}/d/`)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('array');
+					done();
+				});
+		});
+	});
+
+
 
 	/*
 	 * api/v1/b server error

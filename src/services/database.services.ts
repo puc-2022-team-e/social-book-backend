@@ -58,7 +58,7 @@ export class DataBaseServices {
 		return this.db.collection(collection).deleteMany(query);
 	}
 	
-	async queryBuilder(id: any){
+	async queryBuilder(id?: any){
         var query = {};
         if(id){
             const mongoId = this.mongoIDHandler(id);
