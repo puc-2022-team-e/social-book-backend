@@ -3,13 +3,12 @@ import Discussion from '../domain/entities/discussion';
 import DiscussionValidator from '../domain/validators/discussionValidator';
 import BookRepository from '../services/database/repository/bookRepository';
 import DiscussionRepository from '../services/database/repository/discussionRepository';
+import ControllerBase from './ControllerBase';
 
-
-const mapper = require('automapper-js');
 const ERROR_MSG = 'internal server Error';
 const COLLECTION_DISCUSSIONS = 'discussions';
 const COLLECTION_BOOKS = 'books';
-class DiscussionsController {
+class DiscussionsController extends ControllerBase {
 
 	private static discussionRepository = new DiscussionRepository();
 	private static bookRepository = new BookRepository();
@@ -45,9 +44,7 @@ class DiscussionsController {
 
 	static async postDiscussions(req: Request, res: Response) {
 		
-		const validator = new DiscussionValidator();
-		const discussion = mapper(Discussion, req.body);
-		const erros = validator.validate(discussion as DiscussionModel)
+		const [discussion,erros] = DiscussionsController.applyValidationByEntityAndModel(DiscussionValidator,Discussion, <T extends DiscussionModel>(obj: T) => {}, req.body);
 
 		if(Object.keys(erros).length > 0)
 		{

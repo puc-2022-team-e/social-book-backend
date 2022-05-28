@@ -4,5 +4,6 @@ type UserModel = {
   email: string | undefined, 
   linkProfileImage: string | undefined, 
   registerDate: Date, 
-  deactiveDate: Date | undefined
+  deactiveDate: Date | undefined, 
+  perfil:string | undefined
 };

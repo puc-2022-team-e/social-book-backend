@@ -33,6 +33,8 @@ routes.delete("/c/:commentaryid", auth, CommentariesController.deleteCommentaryB
 // users 
 routes.post("/u", auth, UsersController.postUser);
 routes.get("/u/new-user/:email", auth, UsersController.getUserByEmail);
+routes.put("/u/:id", auth, UsersController.updateUser);
+
 
 
 export default routes;
