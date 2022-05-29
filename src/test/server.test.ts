@@ -13,6 +13,7 @@ declare global {
 	var mongoURI: string;
 	var mongoMock: MongoMemoryServer;
 	var dbServices: DataBaseServices;
+	var obj:any;
 }
 
 const apiPath = '/api/v1';
@@ -47,6 +48,8 @@ describe(`instancing server`, () => {
 					res.body.should.be.a('object');
 					res.body.should.have.property('pong');
 					res.body.should.have.property('pong').eql(true);
+
+
 					done();
 				});
 		});
@@ -154,27 +157,91 @@ describe(`instancing server`, () => {
 	 */
 
 	describe(`/POST ${apiPath}/d/`, () => {
-		it('it should return status code 200', (done) => {
+		it('it should create new discussion and return status code 201', (done) => {
 			chai
 				.request(global.server.server())
 				.post(`${apiPath}/d/`)
 				.send(discussionMock)
 				.end((err, res) => {
-					res.should.have.status(200);
-					res.body.should.be.a('array');
+					res.should.have.status(201);
+					res.body.should.be.a('object');
+					res.body.should.have.property('status');
+					res.body.should.have.property('status').eql('success');
+					res.body.should.have.property('id');
 					done();
 				});
 		});
 	});
 
 	describe(`/GET ${apiPath}/d/`, () => {
-		it('it should return status code 200', (done) => {
+		console.log(global.obj)
+		it('it should get all discussions and return status code 200', (done) => {
 			chai
 				.request(global.server.server())
 				.get(`${apiPath}/d/`)
 				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.should.be.a('array');
+					res.body.length.should.be.eql(1);
+					done();
+				});
+		});
+	});
+
+	describe(`/GET ${apiPath}/d/`, () => {
+		console.log(global.obj)
+		it('it should get one discussion return status code 200', (done) => {
+			chai
+				.request(global.server.server())
+				.get(`${apiPath}/d/5287a2e`)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('array');
+					res.body.length.should.be.eql(1);
+					done();
+				});
+		});
+	});
+
+	describe(`/PUT ${apiPath}/d/5287a2e`, () => {
+		it('it should update discussion and return status code 200 and object with success message', (done) => {
+			chai
+				.request(global.server.server())
+				.put(`${apiPath}/d/5287a2e`)
+				.send({
+					updated: "2022-05-30T02:15:30.000Z",
+					comments: [
+						{
+							id:"126iH51fxRfdcaf994f3eax",
+							order:1,
+							userId:"",
+							created:"2022-05-30T02:16:23.000Z",
+							text:"This is a drill",
+						}
+					],
+				})
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('object');
+					res.body.should.have.property('status');
+					res.body.should.have.property('status').eql(200);
+					done();
+				});
+		});
+	});
+
+	describe(`/DELETE ${apiPath}/d/5287a2e`, () => {
+		it('it should return status code 200 and object', (done) => {
+			chai
+				.request(global.server.server())
+				.delete(`${apiPath}/d/5287a2e`)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('object');
+					res.body.should.have.property('status');
+					res.body.should.have.property('status').eql(200);
+					res.body.should.have.property('message');
+					res.body.should.have.property('message').eql('deleted: 1');
 					done();
 				});
 		});

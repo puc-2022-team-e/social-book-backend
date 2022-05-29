@@ -8,7 +8,27 @@ export const discussionRouter = (db: DataBaseServices) => {
 	const discussionService = new DiscussionServices(db);
 
 	router.get('/', auth, async (req: Request, res: Response) => {
-		const response = await discussionService.getDiscussions();
+		const response = await discussionService.getEntity();
+		res.status(response.statusCode).send(response.body);
+	});
+
+	router.get('/:id', auth, async (req: Request, res: Response) => {
+		const response = await discussionService.getEntity(req?.params?.id);
+		res.status(response.statusCode).send(response.body);
+	});
+
+	router.put('/:id', auth, async (req: Request, res: Response) => {
+		const response = await discussionService.updateEntity(req?.params?.id, req?.body);
+		res.status(response.statusCode).send(response.body);
+	});
+
+	router.post('/', auth, async (req:Request, res:Response)=>{
+		const response = await discussionService.newEntity(req?.body);
+		res.status(response.statusCode).send(response.body);
+	})
+
+	router.delete('/:id', auth, async (req: Request, res: Response) => {
+		const response = await discussionService.deleteEntity(req?.params?.id);
 		res.status(response.statusCode).send(response.body);
 	});
 
