@@ -11,6 +11,6 @@ export class DiscussionServices extends Services{
 	}
 
 	castEntity(entity: object):DiscussionInterface {
-		return <DiscussionInterface> entity
+		return <DiscussionInterface> entity;
 	}
 }

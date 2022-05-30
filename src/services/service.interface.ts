@@ -1,22 +1,32 @@
-
-import { ApiResponse } from "./api.response.interface";
-import { DataBaseServices } from "./database.services";
+import { ApiResponse } from './api.response.interface';
+import { DataBaseServices } from './database.services';
 
 export default class Services {
-	db:DataBaseServices;
-	collection:string;
-	validator?:any;
-	constructor(db:DataBaseServices){
+	db: DataBaseServices;
+	collection: string;
+	validator?: any;
+	apiResponse?: ApiResponse;
+
+	constructor(db: DataBaseServices) {
 		this.db = db;
 		this.collection = '';
 	}
-	async getEntity(id?:string):Promise<ApiResponse>{
+
+	updateResponse(newStatusCode: number, newBody: any): ApiResponse {
+		this.apiResponse = {
+			statusCode: newStatusCode,
+			body: newBody,
+		};
+		return this.apiResponse;
+	}
+
+	async getEntity(id?: string): Promise<ApiResponse> {
 		var query = {};
 		var responseBody;
 		var mongoStatusCode = 200;
 		try {
 			if (id) {
-				query = await this.db.queryBuilder(id);
+				query = this.db.queryBuilder(id);
 			}
 
 			responseBody = await this.db.findAny(query, this.collection);
@@ -26,12 +36,32 @@ export default class Services {
 		} catch (e) {
 			// console.error(e);
 			mongoStatusCode = 500;
-			responseBody = [{statusCode: mongoStatusCode, error:"Internal Server Error"}]
+			responseBody = [
+				{ statusCode: mongoStatusCode, error: 'Internal Server Error' },
+			];
 		}
-		return { statusCode: mongoStatusCode, body: responseBody || [] };
+		return this.updateResponse(mongoStatusCode, responseBody);
 	}
 
-	async updateEntity(id:string,values:Object):Promise<ApiResponse>{
+	async getSingleEntity(query: Object): Promise<ApiResponse> {
+		var responseBody;
+		var mongoStatusCode = 200;
+		
+		console.log(JSON.stringify(query));
+
+		try {
+			responseBody = await this.db.findOne(query, this.collection);
+		} catch (e) {
+			mongoStatusCode = 500;
+			responseBody = {
+				statusCode: mongoStatusCode,
+				error: 'Internal Server Error',
+			};
+		}
+		return this.updateResponse(mongoStatusCode, responseBody);
+	}
+
+	async updateEntity(id: string, values: Object): Promise<ApiResponse> {
 		var mongoStatusCode = 404;
 		var responseBody = {};
 		try {
@@ -51,20 +81,20 @@ export default class Services {
 			mongoStatusCode = 500;
 			responseBody = {
 				status: mongoStatusCode,
-				message: "internal server Error"
-			}
+				message: 'internal server Error',
+			};
 		}
-		return { statusCode: mongoStatusCode, body: responseBody };
+		return this.updateResponse(mongoStatusCode, responseBody);
 	}
 
-	async newEntity(entity:Object):Promise<ApiResponse>{
+	async newEntity(entity: Object): Promise<ApiResponse> {
 		var mongoStatusCode = 404;
 		var responseBody = {};
 		try {
 			//try to cast the post object as a Book Object
 			var validEntity = this.castEntity(entity);
-			var hasProblems = this.validator.validate(validEntity)
-			if (Object.keys(hasProblems).length === 0){
+			var hasProblems = this.validator.validate(validEntity);
+			if (Object.keys(hasProblems).length === 0) {
 				const ret = await this.db.insertOne(validEntity, this.collection);
 				if (ret?.insertedId) {
 					mongoStatusCode = 201;
@@ -73,28 +103,33 @@ export default class Services {
 						id: ret?.insertedId,
 					};
 				}
-			}else{
+			} else {
 				mongoStatusCode = 500;
 				responseBody = hasProblems;
 			}
 		} catch (e) {
 			//console.error(e);
-			mongoStatusCode = 500
+			mongoStatusCode = 500;
 		}
 
-		return { statusCode: mongoStatusCode, body: responseBody };
+		return this.updateResponse(mongoStatusCode, responseBody);
 	}
 
-	async deleteEntity(id:string):Promise<ApiResponse>{
+	async deleteEntity(id: string, noShortId:boolean=false): Promise<ApiResponse> {
 		var mongoStatusCode = 404;
 		var responseBody = {};
 		var query = {};
 
 		try {
 			if (id) {
-				query = await this.db.queryBuilder(id);
+				if(!noShortId){
+					query = this.db.queryBuilder(id);
+				}else{
+					query = this.db.queryByIdBuilder(id)
+				}
+				
 			}
-
+			console.log(JSON.stringify(query));
 			const deleted = await this.db.deleteOne(query, this.collection);
 			if (deleted.deletedCount === 1) {
 				mongoStatusCode = 200;
@@ -108,8 +143,8 @@ export default class Services {
 			mongoStatusCode = 500;
 		}
 
-		return { statusCode: mongoStatusCode, body: responseBody };
+		return this.updateResponse(mongoStatusCode, responseBody);
 	}
 
-	castEntity(entity:object):any{}
+	castEntity(entity: object): any {}
 }

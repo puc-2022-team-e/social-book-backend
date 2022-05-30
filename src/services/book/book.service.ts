@@ -12,6 +12,6 @@ export class BooksServices extends Services {
 	}
 	
 	castEntity(entity: object):BooksInterface {
-		return <BooksInterface> entity
+		return <BooksInterface> entity;
 	}
 }

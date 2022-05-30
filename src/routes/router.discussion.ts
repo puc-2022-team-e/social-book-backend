@@ -13,7 +13,9 @@ export const discussionRouter = (db: DataBaseServices) => {
 	});
 
 	router.get('/:id', auth, async (req: Request, res: Response) => {
-		const response = await discussionService.getEntity(req?.params?.id);
+		const response = await discussionService.getSingleEntity(
+			discussionService.db.queryByIdBuilder(req?.params?.id)
+		);
 		res.status(response.statusCode).send(response.body);
 	});
 

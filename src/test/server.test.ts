@@ -7,7 +7,7 @@ import { bookMock } from './test.data/book.mock';
 import config from '../config';
 import auth from '../middleware/auth';
 import { discussionMock } from './test.data/discussion.mock';
-
+import * as mongoDB from 'mongodb';
 declare global {
 	var server: HTTPServer;
 	var mongoURI: string;
@@ -173,6 +173,31 @@ describe(`instancing server`, () => {
 		});
 	});
 
+	describe(`/POST ${apiPath}/d/`, () => {
+		it('it should create new discussion and return status code 201', (done) => {
+			chai
+				.request(global.server.server())
+				.post(`${apiPath}/d/`)
+				.send({
+					_id: new mongoDB.ObjectId('627e7db72547665b997e118e'),
+					short:"6387y2f",
+					title:"test-discussion",
+					bookId:"d867989b-86d3-4e95-84ef-57b1d08d4b31",
+					userId:"test.mock",
+					created:"2022-05-28T21:40:30.000Z"
+				})
+				.end((err, res) => {
+					res.should.have.status(201);
+					res.body.should.be.a('object');
+					res.body.should.have.property('status');
+					res.body.should.have.property('status').eql('success');
+					res.body.should.have.property('id');
+					res.body.should.have.property('id').eql('627e7db72547665b997e118e')
+					done();
+				});
+		});
+	});
+
 	describe(`/GET ${apiPath}/d/`, () => {
 		console.log(global.obj)
 		it('it should get all discussions and return status code 200', (done) => {
@@ -182,7 +207,8 @@ describe(`instancing server`, () => {
 				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.should.be.a('array');
-					res.body.length.should.be.eql(1);
+					res.body.length.should.be.eql(2);
+					
 					done();
 				});
 		});
@@ -190,14 +216,13 @@ describe(`instancing server`, () => {
 
 	describe(`/GET ${apiPath}/d/`, () => {
 		console.log(global.obj)
-		it('it should get one discussion return status code 200', (done) => {
+		it('it should get one discussion by id 627e7db72547665b997e118e return status code 200', (done) => {
 			chai
 				.request(global.server.server())
-				.get(`${apiPath}/d/5287a2e`)
+				.get(`${apiPath}/d/627e7db72547665b997e118e`)
 				.end((err, res) => {
 					res.should.have.status(200);
-					res.body.should.be.a('array');
-					res.body.length.should.be.eql(1);
+					res.body.should.be.a('Object');
 					done();
 				});
 		});
@@ -242,6 +267,120 @@ describe(`instancing server`, () => {
 					res.body.should.have.property('status').eql(200);
 					res.body.should.have.property('message');
 					res.body.should.have.property('message').eql('deleted: 1');
+					done();
+				});
+		});
+	});
+
+	/*
+	 * api/v1/c Commentaries
+	 */
+	describe(`/POST ${apiPath}/c/`, () => {
+		it('it should create new discussion and return status code 201', (done) => {
+			chai
+				.request(global.server.server())
+				.post(`${apiPath}/c/`)
+				.send({
+					_id:  new mongoDB.ObjectId("62fdbf5c0ef8a50b4cdd9a8b"),
+					discussionId: "627e7db72547665b997e118e",
+					commentary: "This is a nice test",
+					registerDate: "2022-05-29T20:17:11.728+00:00",
+				})
+				.end((err, res) => {
+					res.should.have.status(201);
+					res.body.should.be.a('object');
+					res.body.should.have.property('status');
+					res.body.should.have.property('status').eql('success');
+					res.body.should.have.property('id');
+					res.body.should.have.property('id').eql('62fdbf5c0ef8a50b4cdd9a8b')
+					done();
+				});
+		});
+	});
+
+	describe(`/POST ${apiPath}/c/`, () => {
+		it('it should create other new discussion and return status code 201', (done) => {
+			chai
+				.request(global.server.server())
+				.post(`${apiPath}/c/`)
+				.send({
+					_id:  new mongoDB.ObjectId("63fdbf5c0ef9a50b4cdd1a2c"),
+					discussionId: "627e7db72547665b997e118e",
+					commentary: "I would say this is a nice test",
+					registerDate: "2022-05-29T20:30:11.728+00:00",
+				})
+				.end((err, res) => {
+					res.should.have.status(201);
+					res.body.should.be.a('object');
+					res.body.should.have.property('status');
+					res.body.should.have.property('status').eql('success');
+					res.body.should.have.property('id');
+					res.body.should.have.property('id').eql('63fdbf5c0ef9a50b4cdd1a2c')
+					done();
+				});
+		});
+	});
+
+	describe(`/GET ${apiPath}/c/63fdbf5c0ef9a50b4cdd1a2c`, () => {
+		it('it should get commentary by ID and return status code 200', (done) => {
+			chai
+				.request(global.server.server())
+				.get(`${apiPath}/c/63fdbf5c0ef9a50b4cdd1a2c`)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('object');
+					done();
+				});
+		});
+	});
+
+	describe(`/get ${apiPath}/c/`, () => {
+		it('it should get discussion and return status code 200', (done) => {
+			chai
+				.request(global.server.server())
+				.get(`${apiPath}/c/`)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('array');
+					done();
+				});
+		});
+	});
+
+	describe(`/get ${apiPath}/c/d/discussionID`, () => {
+		it('it should get all commentaries and return status code 200', (done) => {
+			chai
+				.request(global.server.server())
+				.get(`${apiPath}/c/d/627e7db72547665b997e118e`)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('array');
+					done();
+				});
+		});
+	});
+
+	// describe(`/delete ${apiPath}/c/63fdbf5c0ef9a50b4cdd1a2c`, () => {
+	// 	it('it should delete commentary by ID and return status code 200', (done) => {
+	// 		chai
+	// 			.request(global.server.server())
+	// 			.delete(`${apiPath}/c/63fdbf5c0ef9a50b4cdd1a2c`)
+	// 			.end((err, res) => {
+	// 				res.should.have.status(200);
+	// 				res.body.should.be.a('object');
+	// 				done();
+	// 			});
+	// 	});
+	// });
+
+	describe(`/GET ${apiPath}/u/`, () => {
+		it('it should get all users and return status code 200', (done) => {
+			chai
+				.request(global.server.server())
+				.get(`${apiPath}/u`)
+				.end((err, res) => {
+					res.should.have.status(200);
+					res.body.should.be.a('array');
 					done();
 				});
 		});
