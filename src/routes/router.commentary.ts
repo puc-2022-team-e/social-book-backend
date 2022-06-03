@@ -19,13 +19,6 @@ export const commentaryRouter = (db: DataBaseServices) => {
 		res.status(response.statusCode).send(response.body);
 	});
 
-	router.get('/d/:discussionID', auth, async (req: Request, res: Response) => {
-		const response = await commentaryService.getAllCommentariesByDiscussion(
-			req?.params?.discussionID
-		);
-		res.status(response.statusCode).send(response.body);
-	});
-
 	router.post('/', auth, async (req: Request, res: Response) => {
 		const response = await commentaryService.newEntity(req?.body);
 		res.status(response.statusCode).send(response.body);

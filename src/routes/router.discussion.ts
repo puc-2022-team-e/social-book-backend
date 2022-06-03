@@ -19,15 +19,25 @@ export const discussionRouter = (db: DataBaseServices) => {
 		res.status(response.statusCode).send(response.body);
 	});
 
-	router.put('/:id', auth, async (req: Request, res: Response) => {
-		const response = await discussionService.updateEntity(req?.params?.id, req?.body);
+	router.get('/:id/c', auth, async (req: Request, res: Response) => {
+		const response = await discussionService.getAllDiscussionComentaries(
+			req?.params?.id
+		);
 		res.status(response.statusCode).send(response.body);
 	});
 
-	router.post('/', auth, async (req:Request, res:Response)=>{
+	router.put('/:id', auth, async (req: Request, res: Response) => {
+		const response = await discussionService.updateEntity(
+			req?.params?.id,
+			req?.body
+		);
+		res.status(response.statusCode).send(response.body);
+	});
+
+	router.post('/', auth, async (req: Request, res: Response) => {
 		const response = await discussionService.newEntity(req?.body);
 		res.status(response.statusCode).send(response.body);
-	})
+	});
 
 	router.delete('/:id', auth, async (req: Request, res: Response) => {
 		const response = await discussionService.deleteEntity(req?.params?.id);

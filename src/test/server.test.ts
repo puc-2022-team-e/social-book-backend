@@ -351,7 +351,7 @@ describe(`instancing server`, () => {
 		it('it should get all commentaries and return status code 200', (done) => {
 			chai
 				.request(global.server.server())
-				.get(`${apiPath}/c/d/627e7db72547665b997e118e`)
+				.get(`${apiPath}/d/627e7db72547665b997e118e/c`)
 				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.should.be.a('array');

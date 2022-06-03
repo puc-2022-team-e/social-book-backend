@@ -14,12 +14,4 @@ export class CommentaryServices extends Services {
 	castEntity(entity: object): CommentaryInterface {
 		return <CommentaryInterface>entity;
 	}
-
-	async getAllCommentariesByDiscussion(discussion:string):Promise<ApiResponse>{
-		var responseBody;
-		var mongoStatusCode = 200;
-		const query = {discussionId:discussion}
-		responseBody = await this.db.findAny(query, this.collection);
-		return this.updateResponse(mongoStatusCode,responseBody)
-	}
 }
