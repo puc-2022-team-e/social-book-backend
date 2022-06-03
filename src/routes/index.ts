@@ -1,41 +1,23 @@
+import express from 'express';
+import healthCheck from '../middleware/healthCheck';
+import { DataBaseServices } from '../services/database.services';
+import { booksRouter } from './router.books';
+import { commentaryRouter } from './router.commentary';
+import { discussionRouter } from './router.discussion';
+import { userRouter } from './router.user';
 
-import { Router } from "express";
-import CommentariesController from "../controllers/commentariesController";
-import DiscussionsController from "../controllers/discussionsController";
-import BooksController from '../controllers/booksController';
-import UsersController from "../controllers/usersController";
+export const mainRouter = (dbService: DataBaseServices) => {
+	const router = express.Router();
 
-import auth from '../middleware/auth';
+	router.get('/ping', healthCheck);
 
-const routes = Router();
+	router.use('/b', booksRouter(dbService));
 
-//books 
-routes.get('/b', auth, BooksController.getBooks);
-routes.get('/b/:id', auth, BooksController.getBooks);
-routes.get('/search/', auth,BooksController.searchBookByString);
-routes.post('/b', auth, BooksController.postBook);
-routes.put('/b/:id',auth, BooksController.updateBook);
-routes.delete('/b/:id', auth, BooksController.deleteBook);
+	router.use('/d', discussionRouter(dbService));
 
-//discussions
-routes.get("/d", auth, DiscussionsController.getDiscussions);
-routes.get("/d/:id", auth, DiscussionsController.getDiscussions);
-routes.post("/d", auth, DiscussionsController.postDiscussions);
-routes.put("/d/:id", auth, DiscussionsController.updateDiscussion);
-routes.delete("/d/:id", auth, DiscussionsController.deleteDiscussion);
+	router.use('/c', commentaryRouter(dbService));
 
-// commentaries
-routes.get("/d/:discussionid/c", auth, CommentariesController.getAllCommentariesByIdDiscussion);
-routes.get("/c/:commentaryid", auth, CommentariesController.getSingleCommentary)
-routes.post("/c", auth, CommentariesController.insertCommentary);
-routes.delete("/c/:commentaryid", auth, CommentariesController.deleteCommentaryById);
+	router.use('/u', userRouter(dbService));
 
-// users 
-routes.post("/u", auth, UsersController.postUser);
-routes.get("/u/new-user/:email", auth, UsersController.getUserByEmail);
-routes.put("/u/:id", auth, UsersController.updateUser);
-
-
-
-export default routes;
-
+	return router;
+};

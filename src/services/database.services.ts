@@ -1,29 +1,34 @@
 import * as mongoDB from 'mongodb';
-
 export class DataBaseServices {
 	mongoClient: mongoDB.MongoClient;
 	db: mongoDB.Db;
+	isConnected: boolean;
 
-	constructor() {
+	constructor(mongoURI: string) {
 		try {
-			this.mongoClient = new mongoDB.MongoClient(
-				process.env.MONGODB_URI || 'localhost'
-			);
+			this.mongoClient = new mongoDB.MongoClient(mongoURI);
 			this.db = this.mongoClient.db('socialbooks');
+			this.isConnected = false;
 		} catch (e) {
-			console.error(e);
+			//console.error(e);
 			throw new Error(`deu ruim DataBaseServices`);
 		}
 	}
 
 	async connect() {
-		console.log(`mongoDB Connected`);
-		await this.mongoClient.connect();
+		if (!this.isConnected) {
+			await this.mongoClient.connect();
+			this.isConnected = true;
+		}
+		console.log(`mongoDB is Connected`);
 	}
 
 	async disconnect() {
-		console.log(`mongoDB Disconnected`);
-		await this.mongoClient.close();
+		if (this.isConnected) {
+			console.log(`mongoDB Disconnected`);
+			await this.mongoClient.close();
+			this.isConnected = false;
+		}
 	}
 
 	async findOne(query: Object, collectionName: string) {
@@ -32,7 +37,7 @@ export class DataBaseServices {
 	}
 
 	async findAny(query: Object, collection: string) {
-		console.log(`find generic`);
+		console.log(`find generic query: ${JSON.stringify(query)}`);
 		return this.db.collection(collection).find(query).toArray();
 	}
 
@@ -52,7 +57,27 @@ export class DataBaseServices {
 		return this.db.collection(collection).deleteMany(query);
 	}
 
-	// TODO create method to return query = { _id:mongoID}
+	queryBuilder(id?: any) {
+		var query = {};
+		if (id) {
+			const mongoId = this.mongoIDHandler(id);
+			if (mongoId) {
+				query = {
+					$or: [{ short: id }, { _id: mongoId }],
+				};
+			} else {
+				query = {
+					short: id,
+				};
+			}
+		}
+		return query;
+	}
+
+	queryByIdBuilder(id: string) {
+		return { _id: this.mongoIDHandler(id) };
+	}
+
 	mongoIDHandler(id?: string) {
 		if (id) {
 			if (mongoDB.ObjectId.isValid(id)) {
@@ -65,27 +90,3 @@ export class DataBaseServices {
 		}
 	}
 }
-
-//To-Do Factory
-// export interface DBServicesFactory {
-// 	mongoClient: mongoDB.MongoClient;
-// 	db: mongoDB.Db;
-
-// 	connect(): Promise<void>;
-
-// 	disconnect(): Promise<void>;
-
-// 	findOne(query: Object,collectionName: string): Promise<mongoDB.WithId<mongoDB.Document>>;
-
-// 	findAny(query: Object,collection: string): Promise<mongoDB.WithId<mongoDB.Document>[]>;
-
-// 	insertOne(document: Object,collection: string): Promise<mongoDB.InsertOneResult<mongoDB.Document>>;
-
-// 	updateOne(query: Object,newValues: Object,collection: string): Promise<mongoDB.UpdateResult>;
-
-// 	deleteOne(query: Object, collection: string): Promise<mongoDB.DeleteResult>;
-
-// 	deleteMany(query: Object, collection: string): Promise<mongoDB.DeleteResult>;
-
-// 	mongoIDHandler(id?: string): mongoDB.ObjectId | null;
-// }
