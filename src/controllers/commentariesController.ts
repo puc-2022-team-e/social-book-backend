@@ -17,7 +17,7 @@ class CommentariesController extends ControllerBase {
 		const discussionID = req?.params?.discussionid;
 
 		if (discussionID) {
-			const query = { discutionId: discussionID };
+			const query = { discussionId: discussionID };
 			const allDiscussions = await CommentariesController.commentaryRepository.findAny(query, COLLECTION);
 			res.status(200).send(allDiscussions);
 		} else {

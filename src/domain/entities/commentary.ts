@@ -6,6 +6,7 @@ export default class Commentary {
 		public registerDate: Date = new Date(),
 		public deactiveDate: Date |undefined,
 		public userId: number | undefined,
+		public userName: string | undefined,
 		public score: number) 
 		{}
 }

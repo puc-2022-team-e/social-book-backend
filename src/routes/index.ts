@@ -25,7 +25,7 @@ routes.put("/d/:id", auth, DiscussionsController.updateDiscussion);
 routes.delete("/d/:id", auth, DiscussionsController.deleteDiscussion);
 
 // commentaries
-routes.get("/c/:discussionid", auth, CommentariesController.getAllCommentariesByIdDiscussion);
+routes.get("/d/:discussionid/c", auth, CommentariesController.getAllCommentariesByIdDiscussion);
 routes.get("/c/:commentaryid", auth, CommentariesController.getSingleCommentary)
 routes.post("/c", auth, CommentariesController.insertCommentary);
 routes.delete("/c/:commentaryid", auth, CommentariesController.deleteCommentaryById);

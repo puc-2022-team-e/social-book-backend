@@ -21,11 +21,7 @@ class DiscussionsController extends ControllerBase {
 			var discussions;
 			
 			if (id) {
-				const mongoId = await DiscussionsController.bookRepository.queryBuilder(id);
-				if (!mongoId) {
-					throw new Error(`invalid id`);
-				}
-				query = { _id: mongoId };
+				query = await DiscussionsController.bookRepository.queryBuilder(id);
 			}
 			console.log(`query: ${JSON.stringify(query)}`);
 			discussions = await DiscussionsController.discussionRepository.findAny(query, COLLECTION_DISCUSSIONS);
