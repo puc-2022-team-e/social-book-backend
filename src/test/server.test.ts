@@ -386,6 +386,27 @@ describe(`instancing server`, () => {
 		});
 	});
 
+	describe(`/POST ${apiPath}/u/`, () => {
+		it('it should post new user and return status code 201', (done) => {
+			chai
+				.request(global.server.server())
+				.post(`${apiPath}/u`)
+				.send({
+					_id:new mongoDB.ObjectId("629b430b488f6b2aafc73456"),
+					userName: "joe.doe",
+					email: "joe.doe@gmail.com",
+					registerDate: Date(),
+					role:"literato",
+					providerUserId:"65f9b8i12335i0fgt89",
+					providerType:"gmail-google"
+				})
+				.end((err, res) => {
+					res.should.have.status(201);
+					done();
+				});
+		});
+	});
+
 
 
 	/*

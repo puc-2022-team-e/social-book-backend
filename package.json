@@ -1,6 +1,6 @@
 {
 	"name": "social-book-backend",
-	"version": "1.0.1",
+	"version": "1.1.0",
 	"description": "api backend for the social-book project",
 	"main": "./dist/server.js",
 	"scripts": {

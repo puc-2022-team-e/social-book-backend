@@ -15,9 +15,9 @@ export default class UserValidator extends Validator<UserInterface>{
         .withMessage('Por favor, informar um e-mail válido.');
 
         // perfil 
-        this.ruleFor('perfil')
+        this.ruleFor('role')
         .notNull()
-        .must(perfil => perfil == 'admin' || perfil == 'literato')
+        .must(role => role == 'admin' || role == 'literato')
         .withMessage('Por favor, informar um perfil válido. [admin, literato]');
 	}
 }
