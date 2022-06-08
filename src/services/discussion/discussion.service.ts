@@ -14,12 +14,4 @@ export class DiscussionServices extends Services{
 	castEntity(entity: object):DiscussionInterface {
 		return <DiscussionInterface> entity;
 	}
-
-	async getAllDiscussionComentaries(discussionId:string):Promise<ApiResponse>{
-		var responseBody;
-		var mongoStatusCode = 200;
-		const query = {discussionId:discussionId}
-		responseBody = await this.db.findAny(query, this.collection);
-		return this.updateResponse(mongoStatusCode,responseBody)
-	}
 }

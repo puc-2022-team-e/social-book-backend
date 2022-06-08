@@ -1,11 +1,13 @@
 import express, { Response, Request } from 'express';
 import auth from '../middleware/auth';
+import { CommentaryServices } from '../services/commentary/commentary.service';
 import { DataBaseServices } from '../services/database.services';
 import { DiscussionServices } from '../services/discussion/discussion.service';
 const router = express.Router();
 
 export const discussionRouter = (db: DataBaseServices) => {
 	const discussionService = new DiscussionServices(db);
+	const commentaryService = new CommentaryServices(db);
 
 	router.get('/', auth, async (req: Request, res: Response) => {
 		const response = await discussionService.getEntity();
@@ -20,7 +22,7 @@ export const discussionRouter = (db: DataBaseServices) => {
 	});
 
 	router.get('/:id/c', auth, async (req: Request, res: Response) => {
-		const response = await discussionService.getAllDiscussionComentaries(
+		const response = await commentaryService.getAllDiscussionComentaries(
 			req?.params?.id
 		);
 		res.status(response.statusCode).send(response.body);
