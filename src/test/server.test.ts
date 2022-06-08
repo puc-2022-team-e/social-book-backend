@@ -275,8 +275,33 @@ describe(`instancing server`, () => {
 	/*
 	 * api/v1/c Commentaries
 	 */
+
+
 	describe(`/POST ${apiPath}/c/`, () => {
-		it('it should create new discussion and return status code 201', (done) => {
+		it('it should create new commentary and return status code 201', (done) => {
+			chai
+				.request(global.server.server())
+				.post(`${apiPath}/c/`)
+				.send({
+					_id:  new mongoDB.ObjectId("62fdbf5c0ef8a50b4cdd9a7b"),
+					discussionId: "627e7db72547665b997e117f",
+					commentary: "This is my first commentary",
+					registerDate: "2022-06-08T20:20:19.729+00:00",
+				})
+				.end((err, res) => {
+					res.should.have.status(201);
+					res.body.should.be.a('object');
+					res.body.should.have.property('status');
+					res.body.should.have.property('status').eql('success');
+					res.body.should.have.property('id');
+					res.body.should.have.property('id').eql('62fdbf5c0ef8a50b4cdd9a7b')
+					done();
+				});
+		});
+	});
+
+	describe(`/POST ${apiPath}/c/`, () => {
+		it('it should create new commentary and return status code 201', (done) => {
 			chai
 				.request(global.server.server())
 				.post(`${apiPath}/c/`)
@@ -299,7 +324,7 @@ describe(`instancing server`, () => {
 	});
 
 	describe(`/POST ${apiPath}/c/`, () => {
-		it('it should create other new discussion and return status code 201', (done) => {
+		it('it should create other new commentary and return status code 201', (done) => {
 			chai
 				.request(global.server.server())
 				.post(`${apiPath}/c/`)
@@ -335,26 +360,28 @@ describe(`instancing server`, () => {
 	});
 
 	describe(`/get ${apiPath}/c/`, () => {
-		it('it should get discussion and return status code 200', (done) => {
+		it('it should get all 3 commentaries and return status code 200', (done) => {
 			chai
 				.request(global.server.server())
 				.get(`${apiPath}/c/`)
 				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.should.be.a('array');
+					res.body.length.should.be.eql(3);
 					done();
 				});
 		});
 	});
 
 	describe(`/get ${apiPath}/c/d/discussionID`, () => {
-		it('it should get all commentaries and return status code 200', (done) => {
+		it('it should get all 2 commentaries from discussion 627e7db72547665b997e118e and return status code 200', (done) => {
 			chai
 				.request(global.server.server())
 				.get(`${apiPath}/d/627e7db72547665b997e118e/c`)
 				.end((err, res) => {
 					res.should.have.status(200);
 					res.body.should.be.a('array');
+					res.body.length.should.be.eql(2);
 					done();
 				});
 		});

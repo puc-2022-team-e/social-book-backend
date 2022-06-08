@@ -17,9 +17,10 @@ export class DiscussionServices extends Services{
 
 	async getAllDiscussionComentaries(discussionId:string):Promise<ApiResponse>{
 		var responseBody;
+		var commentaryCollection = `commentaries`
 		var mongoStatusCode = 200;
 		const query = {discussionId:discussionId}
-		responseBody = await this.db.findAny(query, this.collection);
+		responseBody = await this.db.findAny(query, commentaryCollection);
 		return this.updateResponse(mongoStatusCode,responseBody)
 	}
 }

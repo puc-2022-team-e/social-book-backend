@@ -1,5 +1,5 @@
 export const discussionMock = {
-	_id:5000,
+	_id:"627e7db72547665b997e117f",
 	short:"5287a2e",
 	title:"test-discussion",
 	bookId:"d867989b-86d3-4e95-84ef-57b1d08d4b31",
