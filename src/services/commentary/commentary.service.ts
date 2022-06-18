@@ -1,4 +1,3 @@
-import { ApiResponse } from '../api.response.interface';
 import { DataBaseServices } from '../database.services';
 import Services from '../service.interface';
 import CommentaryInterface from './commentary.interface';
