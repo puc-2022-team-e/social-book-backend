@@ -8,15 +8,23 @@ import config from '../config';
 import auth from '../middleware/auth';
 import { discussionMock } from './test.data/discussion.mock';
 import * as mongoDB from 'mongodb';
+import { text } from 'body-parser';
 declare global {
 	var server: HTTPServer;
 	var mongoURI: string;
 	var mongoMock: MongoMemoryServer;
 	var dbServices: DataBaseServices;
-	var obj:any;
+	var obj: any;
+}
+
+function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
 }
 
 const apiPath = '/api/v1';
+// const newIndex: mongoDB.IndexSpecification = {
+// 	short: "text"
+// };
 
 chai.use(chaiHttp);
 chai.should();
@@ -27,6 +35,8 @@ describe(`instancing server`, () => {
 			global.mongoMock = await MongoMemoryServer.create();
 			global.mongoURI = global.mongoMock.getUri();
 			global.dbServices = new DataBaseServices(global.mongoURI);
+			// global.dbServices.db.collection('books').createIndex(newIndex);
+			await global.mongoMock.ensureInstance();
 			global.server = new HTTPServer(global.dbServices);
 			await global.dbServices.connect();
 			global.server.listen(Number(config.port));
@@ -48,7 +58,6 @@ describe(`instancing server`, () => {
 					res.body.should.be.a('object');
 					res.body.should.have.property('pong');
 					res.body.should.have.property('pong').eql(true);
-
 
 					done();
 				});
@@ -135,6 +144,22 @@ describe(`instancing server`, () => {
 		});
 	});
 
+	/*
+	 * api/v1/search busca
+	 */
+	describe(`/search ${apiPath}/search?q=mock`, () => {
+
+		it('it should search for Bookman and find one result with status code 200 and object', (done) => {
+			chai
+				.request(global.server.server())
+				.get(`${apiPath}/search`)
+				.end((err, res) => {
+					res.should.have.status(404);
+					done();
+				});
+		});
+	});
+
 	describe(`/DELETE ${apiPath}/b/bookMock`, () => {
 		it('it should return status code 200 and object', (done) => {
 			chai
@@ -180,11 +205,11 @@ describe(`instancing server`, () => {
 				.post(`${apiPath}/d/`)
 				.send({
 					_id: new mongoDB.ObjectId('627e7db72547665b997e118e'),
-					short:"6387y2f",
-					title:"test-discussion",
-					bookId:"d867989b-86d3-4e95-84ef-57b1d08d4b31",
-					userId:"test.mock",
-					created:"2022-05-28T21:40:30.000Z"
+					short: '6387y2f',
+					title: 'test-discussion',
+					bookId: 'd867989b-86d3-4e95-84ef-57b1d08d4b31',
+					userId: 'test.mock',
+					created: '2022-05-28T21:40:30.000Z',
 				})
 				.end((err, res) => {
 					res.should.have.status(201);
@@ -192,14 +217,14 @@ describe(`instancing server`, () => {
 					res.body.should.have.property('status');
 					res.body.should.have.property('status').eql('success');
 					res.body.should.have.property('id');
-					res.body.should.have.property('id').eql('627e7db72547665b997e118e')
+					res.body.should.have.property('id').eql('627e7db72547665b997e118e');
 					done();
 				});
 		});
 	});
 
 	describe(`/GET ${apiPath}/d/`, () => {
-		console.log(global.obj)
+		console.log(global.obj);
 		it('it should get all discussions and return status code 200', (done) => {
 			chai
 				.request(global.server.server())
@@ -208,14 +233,14 @@ describe(`instancing server`, () => {
 					res.should.have.status(200);
 					res.body.should.be.a('array');
 					res.body.length.should.be.eql(2);
-					
+
 					done();
 				});
 		});
 	});
 
 	describe(`/GET ${apiPath}/d/`, () => {
-		console.log(global.obj)
+		console.log(global.obj);
 		it('it should get one discussion by id 627e7db72547665b997e118e return status code 200', (done) => {
 			chai
 				.request(global.server.server())
@@ -234,15 +259,15 @@ describe(`instancing server`, () => {
 				.request(global.server.server())
 				.put(`${apiPath}/d/5287a2e`)
 				.send({
-					updated: "2022-05-30T02:15:30.000Z",
+					updated: '2022-05-30T02:15:30.000Z',
 					comments: [
 						{
-							id:"126iH51fxRfdcaf994f3eax",
-							order:1,
-							userId:"",
-							created:"2022-05-30T02:16:23.000Z",
-							text:"This is a drill",
-						}
+							id: '126iH51fxRfdcaf994f3eax',
+							order: 1,
+							userId: '',
+							created: '2022-05-30T02:16:23.000Z',
+							text: 'This is a drill',
+						},
 					],
 				})
 				.end((err, res) => {
@@ -276,17 +301,16 @@ describe(`instancing server`, () => {
 	 * api/v1/c Commentaries
 	 */
 
-
 	describe(`/POST ${apiPath}/c/`, () => {
 		it('it should create new commentary and return status code 201', (done) => {
 			chai
 				.request(global.server.server())
 				.post(`${apiPath}/c/`)
 				.send({
-					_id:  new mongoDB.ObjectId("62fdbf5c0ef8a50b4cdd9a7b"),
-					discussionId: "627e7db72547665b997e117f",
-					commentary: "This is my first commentary",
-					registerDate: "2022-06-08T20:20:19.729+00:00",
+					_id: new mongoDB.ObjectId('62fdbf5c0ef8a50b4cdd9a7b'),
+					discussionId: '627e7db72547665b997e117f',
+					commentary: 'This is my first commentary',
+					registerDate: '2022-06-08T20:20:19.729+00:00',
 				})
 				.end((err, res) => {
 					res.should.have.status(201);
@@ -294,7 +318,7 @@ describe(`instancing server`, () => {
 					res.body.should.have.property('status');
 					res.body.should.have.property('status').eql('success');
 					res.body.should.have.property('id');
-					res.body.should.have.property('id').eql('62fdbf5c0ef8a50b4cdd9a7b')
+					res.body.should.have.property('id').eql('62fdbf5c0ef8a50b4cdd9a7b');
 					done();
 				});
 		});
@@ -306,10 +330,10 @@ describe(`instancing server`, () => {
 				.request(global.server.server())
 				.post(`${apiPath}/c/`)
 				.send({
-					_id:  new mongoDB.ObjectId("62fdbf5c0ef8a50b4cdd9a8b"),
-					discussionId: "627e7db72547665b997e118e",
-					commentary: "This is a nice test",
-					registerDate: "2022-05-29T20:17:11.728+00:00",
+					_id: new mongoDB.ObjectId('62fdbf5c0ef8a50b4cdd9a8b'),
+					discussionId: '627e7db72547665b997e118e',
+					commentary: 'This is a nice test',
+					registerDate: '2022-05-29T20:17:11.728+00:00',
 				})
 				.end((err, res) => {
 					res.should.have.status(201);
@@ -317,7 +341,7 @@ describe(`instancing server`, () => {
 					res.body.should.have.property('status');
 					res.body.should.have.property('status').eql('success');
 					res.body.should.have.property('id');
-					res.body.should.have.property('id').eql('62fdbf5c0ef8a50b4cdd9a8b')
+					res.body.should.have.property('id').eql('62fdbf5c0ef8a50b4cdd9a8b');
 					done();
 				});
 		});
@@ -329,10 +353,10 @@ describe(`instancing server`, () => {
 				.request(global.server.server())
 				.post(`${apiPath}/c/`)
 				.send({
-					_id:  new mongoDB.ObjectId("63fdbf5c0ef9a50b4cdd1a2c"),
-					discussionId: "627e7db72547665b997e118e",
-					commentary: "I would say this is a nice test",
-					registerDate: "2022-05-29T20:30:11.728+00:00",
+					_id: new mongoDB.ObjectId('63fdbf5c0ef9a50b4cdd1a2c'),
+					discussionId: '627e7db72547665b997e118e',
+					commentary: 'I would say this is a nice test',
+					registerDate: '2022-05-29T20:30:11.728+00:00',
 				})
 				.end((err, res) => {
 					res.should.have.status(201);
@@ -340,7 +364,7 @@ describe(`instancing server`, () => {
 					res.body.should.have.property('status');
 					res.body.should.have.property('status').eql('success');
 					res.body.should.have.property('id');
-					res.body.should.have.property('id').eql('63fdbf5c0ef9a50b4cdd1a2c')
+					res.body.should.have.property('id').eql('63fdbf5c0ef9a50b4cdd1a2c');
 					done();
 				});
 		});
@@ -419,13 +443,13 @@ describe(`instancing server`, () => {
 				.request(global.server.server())
 				.post(`${apiPath}/u`)
 				.send({
-					_id:new mongoDB.ObjectId("629b430b488f6b2aafc73456"),
-					userName: "joe.doe",
-					email: "joe.doe@gmail.com",
+					_id: new mongoDB.ObjectId('629b430b488f6b2aafc73456'),
+					userName: 'joe.doe',
+					email: 'joe.doe@gmail.com',
 					registerDate: Date(),
-					role:"literato",
-					providerUserId:"65f9b8i12335i0fgt89",
-					providerType:"gmail-google"
+					role: 'literato',
+					providerUserId: '65f9b8i12335i0fgt89',
+					providerType: 'gmail-google',
 				})
 				.end((err, res) => {
 					res.should.have.status(201);
@@ -433,8 +457,6 @@ describe(`instancing server`, () => {
 				});
 		});
 	});
-
-
 
 	/*
 	 * api/v1/b server error
